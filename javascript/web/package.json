@@ -1,0 +1,12 @@
+{
+  "name": "custom-sink-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@substreams/core": "^0.1.19",
+    "@substreams/manifest": "^0.0.9",
+    "@bufbuild/connect-web": "0.13.0"
+  },
+  "type": "module"
+}

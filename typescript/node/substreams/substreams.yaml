@@ -1,0 +1,23 @@
+specVersion: v0.1.0
+package:
+  name: substreams_head_tracker
+  version: v1.0.0
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ./target/wasm32-unknown-unknown/release/substreams.wasm
+
+protobuf:
+  files:
+    - out.proto
+  importPaths:
+    - ./proto
+
+modules:
+  - name: map_block_meta
+    kind: map
+    inputs:
+      - params: string
+    output:
+      type: proto:out.Out
