@@ -6,13 +6,14 @@ import {
   createRegistry,
   fetchSubstream
 } from '@substreams/core';
-import { createConnectTransport } from "@bufbuild/connect-web";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import { getCursor, writeCursor } from "./cursor.js"
+import { isErrorUnresolvable } from "./error.js"
 
-const TOKEN = "YOUR-TOKEN"
+const TOKEN = "<SUBSTREAMS-TOKEN>"
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
 const SPKG = "https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg"
 const MODULE = "map_block_meta"
-const CURSOR_LOCAL_STORAGE = "cursor"
 const START_BLOCK = '100000'
 const STOP_BLOCK = '+10000'
 
@@ -26,19 +27,6 @@ const updateDOM = (output, cursor) => {
 
 const fetchPackage = async () => {
   return await fetchSubstream(SPKG);
-}
-
-const getCursor = async () => {
-  return localStorage.getItem(CURSOR_LOCAL_STORAGE);
-}
-
-// In this example, the cursor is persisted in the local storage of the browser.
-const writeCursor = async cursor => {
-  try {
-      localStorage.setItem(CURSOR_LOCAL_STORAGE, cursor);
-  } catch (e) {
-      throw new Error("COULD_NOT_COMMIT_CURSOR");
-  }
 }
 
 const unpackAndCommitCursor = async (response, registry) => {
@@ -110,7 +98,11 @@ const executeStreaming = async () => {
           streamingRunning = false;
           await stream(pkg, registry, transport);
       } catch (e) {
-          console.log(e);
+          if (!isErrorUnresolvable(e)) {
+            running = true;
+          }
+
+          console.log(e)
       }
   }
 }

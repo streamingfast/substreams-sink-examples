@@ -2,7 +2,7 @@
 
 This example consumes a Substreams package (specifically, the [Ethereum Explorer](https://substreams.dev/streamingfast/ethereum-explorer/v0.1.2)) using the Substreams JS library in NodeJS.
 
-The token is provided through an environment variable:
+The [API token](https://substreams.streamingfast.io/documentation/consume/authentication) is provided through an environment variable:
 
 ```javascript
 const TOKEN = process.env.SUBSTREAMS_API_TOKEN

@@ -6,7 +6,8 @@
   "dependencies": {
     "@substreams/core": "^0.1.19",
     "@substreams/manifest": "^0.0.9",
-    "@bufbuild/connect-web": "0.13.0"
+    "@connectrpc/connect-web": "1.4.0",
+    "@connectrpc/connect": "1.4.0"
   },
   "scripts": {
     "dev": "vite",

@@ -7,74 +7,15 @@ import {
     fetchSubstream
 } from '@substreams/core';
 import { createConnectTransport } from "@connectrpc/connect-node";
-import fs from "fs";
+import { writeCursor, getCursor } from "./cursor.js";
+import { isErrorUnresolvable } from "./error.js";
 
 const TOKEN = process.env.SUBSTREAMS_API_TOKEN
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
 const SPKG = "https://storage.googleapis.com/substreams-registry/spkg/ethereum-explorer-v0.1.1.spkg"
 const MODULE = "map_block_meta"
-const CURSOR_FILE = "cursor"
 const START_BLOCK = '100000'
 const STOP_BLOCK = '+10000'
-
-const fetchPackage = async () => {
-    return await fetchSubstream(SPKG)
-}
-
-const getCursor = async () => {
-    return fs.promises.readFile(CURSOR_FILE)
-}
-
-// In this example, the cursor is persisted in a file.
-const writeCursor = async cursor => {
-    try {
-        await fs.promises.writeFile(CURSOR_FILE, cursor)
-    } catch (e) {
-        throw new Error("COULD_NOT_COMMIT_CURSOR")
-    }
-}
-
-const unpackAndCommitCursor = async (response, registry) => {
-  if (response.message.case === "blockScopedData") {
-    const output = response.message.value.output?.mapOutput;
-    const cursor = response.message.value.cursor;
-
-    await writeCursor(cursor);
-
-    if (output !== undefined) {
-      const message = output.unpack(registry);
-      if (message === undefined) {
-        throw new Error(`Failed to unpack output of type ${output.typeUrl}`);
-      }
-
-      return message;
-    }
-  }
-
-  return undefined;
-}
-
-const stream = async (pkg, registry, transport) => {
-    const request = createRequest({
-        substreamPackage: pkg,
-        outputModule: MODULE,
-        productionMode: true,
-        startBlockNum: START_BLOCK,
-        stopBlockNum: STOP_BLOCK,
-        startCursor: await getCursor() ?? undefined
-    });
-    
-    // Stream the blocks
-    for await (const response of streamBlocks(transport, request)) {
-        // Decode the response and commit the cursor
-        const output = await unpackAndCommitCursor(response.response, registry);
-
-        if (output !== undefined && !isEmptyMessage(output)) {
-            const outputAsJson = output.toJson({typeRegistry: registry});
-            console.log(outputAsJson)
-        }
-    }
-}
 
 /*
     Entrypoint of the application.
@@ -103,7 +44,57 @@ const main = async () => {
             running = false;
             await stream(pkg, registry, transport);
         } catch (e) {
+            if (!isErrorUnresolvable(e)) {
+                running = true;
+            }
+
             console.log(e)
+        }
+    }
+}
+
+const fetchPackage = async () => {
+    return await fetchSubstream(SPKG)
+}
+
+const unpack = async (response, registry) => {
+  if (response.message.case === "blockScopedData") {
+    const output = response.message.value.output?.mapOutput;
+    const cursor = response.message.value.cursor;
+
+    if (output !== undefined) {
+      const message = output.unpack(registry);
+      if (message === undefined) {
+        throw new Error(`Failed to unpack output of type ${output.typeUrl}`);
+      }
+
+      return {'output': output, 'cursor': cursor};
+    }
+  }
+
+  return undefined;
+}
+
+const stream = async (pkg, registry, transport) => {
+    const request = createRequest({
+        substreamPackage: pkg,
+        outputModule: MODULE,
+        productionMode: true,
+        startBlockNum: START_BLOCK,
+        stopBlockNum: STOP_BLOCK,
+        startCursor: await getCursor() ?? undefined
+    });
+    
+    // Stream the blocks
+    for await (const response of streamBlocks(transport, request)) {
+        // Decode the response and get the relevant data for the application (output and cursor)
+        const message = await unpack(response.response, registry);
+
+        if (message !== undefined && !isEmptyMessage(message.output)) {
+            const outputAsJson = message.output.toJson({typeRegistry: registry});
+            console.log(outputAsJson)
+
+            await writeCursor(message.cursor);
         }
     }
 }
