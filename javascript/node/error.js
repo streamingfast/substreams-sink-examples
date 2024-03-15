@@ -1,28 +1,31 @@
+import { Code } from '@connectrpc/connect'
 
-const isAppErrorUnresolvable = e => {
+const FATAL_ERRORS = [Code.Unauthenticated, Code.InvalidArgument, Code.Internal]
+
+const isAppErrorRetryable = e => {
     if (e.message === "COULD_NOT_READ_CURSOR" || e.message === "COULD_NOT_COMMIT_CURSOR") {
-        return true
+        return false
     }
     
-    return false
+    return true
 }
 
-const isTransportErrorUnresolvable = e => {
-    try {
-        if (e.code === 16 || e.code === 3) {
-            return true
-        }
-
+const isTransportErrorRetryable = e => {
+    if (FATAL_ERRORS.includes(e.code)) {
         return false
-    } catch (e) {
-        return true
     }
+
+    return true
 }
 
-export const isErrorUnresolvable = (e) => {
-    if (e instanceof Error) {
-        return isAppErrorUnresolvable(e)
+export const isErrorRetryable = (e) => {
+    if (e.constructor.name === 'ConnectError') {    
+        return isTransportErrorRetryable(e)
     }
 
-    return isTransportErrorUnresolvable(e)
+    if (e instanceof Error) {
+        return isAppErrorRetryable(e)
+    }
+
+    return false
 }

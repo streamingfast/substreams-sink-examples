@@ -12,12 +12,12 @@ If you don't have it, set the `SUBSTREAMS_API_TOKEN` environment variable. Then,
 
 1. Install the dependencies.
 
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
-2. Run the script.
+1. Run the script.
 
-```bash
-node index.js
-```
+    ```bash
+    node index.js
+    ```

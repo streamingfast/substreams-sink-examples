@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const CURSOR_FILE = "cursor"
+const CURSOR_FILE = "./cursor"
 
 export const getCursor = async () => {
     try {

@@ -1,14 +1,14 @@
 import {
     createRequest,
-    isEmptyMessage,
     streamBlocks,
     createAuthInterceptor,
     createRegistry,
     fetchSubstream
 } from '@substreams/core';
 import { createConnectTransport } from "@connectrpc/connect-node";
-import { writeCursor, getCursor } from "./cursor.js";
-import { isErrorUnresolvable } from "./error.js";
+import { getCursor } from "./cursor.js";
+import { isErrorRetryable } from "./error.js";
+import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 
 const TOKEN = process.env.SUBSTREAMS_API_TOKEN
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
@@ -34,45 +34,26 @@ const main = async () => {
             typeRegistry: registry,
         },
     });
-
-    let running = true;
     
     // The infite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
     // and start consuming from the latest commited cursor.
-    while (running) {
+    while (true) {
         try {
-            running = false;
             await stream(pkg, registry, transport);
         } catch (e) {
-            if (!isErrorUnresolvable(e)) {
-                running = true;
+            if (!isErrorRetryable(e)) {
+              console.log(`A fatal error occurred: ${e}`)
+              throw e
             }
-
+            console.log(`A retryable error occurred (${e}), retrying after backoff`)
             console.log(e)
+            // Add backoff from a an easy to use library
         }
     }
 }
 
 const fetchPackage = async () => {
     return await fetchSubstream(SPKG)
-}
-
-const unpack = async (response, registry) => {
-  if (response.message.case === "blockScopedData") {
-    const output = response.message.value.output?.mapOutput;
-    const cursor = response.message.value.cursor;
-
-    if (output !== undefined) {
-      const message = output.unpack(registry);
-      if (message === undefined) {
-        throw new Error(`Failed to unpack output of type ${output.typeUrl}`);
-      }
-
-      return {'output': output, 'cursor': cursor};
-    }
-  }
-
-  return undefined;
 }
 
 const stream = async (pkg, registry, transport) => {
@@ -86,16 +67,19 @@ const stream = async (pkg, registry, transport) => {
     });
     
     // Stream the blocks
-    for await (const response of streamBlocks(transport, request)) {
-        // Decode the response and get the relevant data for the application (output and cursor)
-        const message = await unpack(response.response, registry);
+    for await (const statefulResponse of streamBlocks(transport, request)) {
+        /*
+            Decode the response and handle the message.
+            There different types of response messages that you can receive. You can read more about the response message in the docs:
+            https://substreams.streamingfast.io/documentation/consume/reliability-guarantees#the-response-format
+        */
+        await handleResponseMessage(statefulResponse.response, registry);
 
-        if (message !== undefined && !isEmptyMessage(message.output)) {
-            const outputAsJson = message.output.toJson({typeRegistry: registry});
-            console.log(outputAsJson)
-
-            await writeCursor(message.cursor);
-        }
+        /*
+            Handle the progress message.
+            Regardless of the response message, the progress message is always sent, and gives you useful information about the execution of the Substreams.
+        */
+        handleProgressMessage(statefulResponse.progress, registry);
     }
 }
 
