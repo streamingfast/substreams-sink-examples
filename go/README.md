@@ -1,8 +1,8 @@
-## Substreams Sink Examples - Advanced
+## Substreams Go Sink Example
 
-This example is similar to [examples/basic](../basic/) with the difference that we use `sink.NewFromViper` to construct our instance which gives increase control on the sink for the operators in a "low-maintenance" fashion as the library deals with the flags and parsing. You will notice there is also less code to instantiate the `sink.Sinker` instance as more information is pulled from the flag.
+The following example shows how to consume a Substreams package using the Go programming language in a production environment. This means dealing with disconnections and persisting the cursor to avoid reading the data twice, or missing information.
 
-Our example use our `github.com/streamingfast/cli` command definition which is just a thin wrapper around `cobra` and `viper`. Any `cobra` command should work with the library, there is no need to follow the CLI pattern.
+The example uses our `github.com/streamingfast/cli` command definition which is just a thin wrapper around `cobra` and `viper`. Any `cobra` command should work with the library, but there is no need to follow the CLI pattern.
 
 > [!NOTE]
 > We highly recommend to use this example for any serious sink implementation!
@@ -10,8 +10,8 @@ Our example use our `github.com/streamingfast/cli` command definition which is j
 To run the example:
 
 ```bash
-# We assume you are in ./examples/advanced
-go run . sink mainnet.eth.streamingfast.io:443 https://github.com/streamingfast/substreams-eth-block-meta/releases/download/v0.5.1/substreams-eth-block-meta-v0.5.1.spkg db_out
+# We assume you are in ./substreams-sink-examples/go
+go run . sink mainnet.eth.streamingfast.io:443 https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg db_out
 ```
 
 Note also the availability of `go run . sink --help` which gives you most configuration option for free:
