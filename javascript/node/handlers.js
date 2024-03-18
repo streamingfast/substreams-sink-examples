@@ -56,6 +56,6 @@ export const handleResponseMessage = async (response, registry) => {
     }
 }
 
-export const handleProgressMessage = async progress => {
+export const handleProgressMessage = progress => {
     console.log(`Progress: ${objectToJsonString(progress)}`)
 }
