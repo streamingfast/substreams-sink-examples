@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package out;
-
-import "google/protobuf/timestamp.proto";
-
-message Out {
-  string params = 1;
-}
