@@ -23,7 +23,7 @@ func main() {
 
 	Run(
 		"sinker",
-		"Description of your command",
+		"Simple Go sinker sinking data to your terminal",
 
 		Command(sinkRunE,
 			"sink <endpoint> <manifest> [<output_module>]",
