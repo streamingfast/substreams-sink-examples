@@ -1,4 +1,4 @@
-module github.com/streamingfast/substreams-sink/examples/advanced
+module github.com/streamingfast/sink-example
 
 go 1.21.5
 
@@ -8,7 +8,7 @@ require (
 	github.com/streamingfast/cli v0.0.4-0.20230825151644-8cc84512cd80
 	github.com/streamingfast/logging v0.0.0-20230608130331-f22c91403091
 	github.com/streamingfast/substreams v1.3.3
-	github.com/streamingfast/substreams-sink v0.3.2
+	github.com/streamingfast/substreams-sink v0.3.3
 	github.com/streamingfast/substreams-sink-database-changes v1.3.0
 )
 
@@ -95,7 +95,7 @@ require (
 	github.com/streamingfast/dbin v0.9.1-0.20231117225723-59790c798e2c // indirect
 	github.com/streamingfast/derr v0.0.0-20230515163924-8570aaa43fe1 // indirect
 	github.com/streamingfast/dgrpc v0.0.0-20230929132851-893fc52687fa // indirect
-	github.com/streamingfast/dmetrics v0.0.0-20230919161904-206fa8ebd545 // indirect
+	github.com/streamingfast/dmetrics v0.0.0-20240214191810-524a5c58fbaa // indirect
 	github.com/streamingfast/dstore v0.1.1-0.20230620124109-3924b3b36c77 // indirect
 	github.com/streamingfast/opaque v0.0.0-20210811180740-0c01d37ea308 // indirect
 	github.com/streamingfast/pbgo v0.0.6-0.20231120172814-537d034aad5e // indirect

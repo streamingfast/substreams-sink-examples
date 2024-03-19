@@ -11,7 +11,7 @@ To run the example:
 
 ```bash
 # We assume you are in ./substreams-sink-examples/go
-go run . sink mainnet.eth.streamingfast.io:443 https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg db_out
+go run . sink mainnet.eth.streamingfast.io:443 https://spkg.io/streamingfast/substreams-eth-block-meta-v0.4.3.spkg db_out
 ```
 
 Note also the availability of `go run . sink --help` which gives you most configuration option for free:

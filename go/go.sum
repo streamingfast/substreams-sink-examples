@@ -377,6 +377,8 @@ github.com/streamingfast/dgrpc v0.0.0-20230929132851-893fc52687fa h1:L/Ipge5pkZt
 github.com/streamingfast/dgrpc v0.0.0-20230929132851-893fc52687fa/go.mod h1:AcY2kk28XswihgU6z37288a3ZF4gGGO7nNwlTI/vET4=
 github.com/streamingfast/dmetrics v0.0.0-20230919161904-206fa8ebd545 h1:SUl04bZKGAv207lp7/6CHOJIRpjUKunwItrno3K463Y=
 github.com/streamingfast/dmetrics v0.0.0-20230919161904-206fa8ebd545/go.mod h1:JbxEDbzWRG1dHdNIPrYfuPllEkktZMgm40AwVIBENcw=
+github.com/streamingfast/dmetrics v0.0.0-20240214191810-524a5c58fbaa h1:PJkLMu6Own6V5qYwJDQHgRBCTTW2CxV4xxADMXfw+0M=
+github.com/streamingfast/dmetrics v0.0.0-20240214191810-524a5c58fbaa/go.mod h1:JbxEDbzWRG1dHdNIPrYfuPllEkktZMgm40AwVIBENcw=
 github.com/streamingfast/dstore v0.1.1-0.20230620124109-3924b3b36c77 h1:u7FWLqz3Uwff609Ja9M+3aGOWqBCVU7dx9i6R6Qc4qI=
 github.com/streamingfast/dstore v0.1.1-0.20230620124109-3924b3b36c77/go.mod h1:ngKU7WzHwVjOFpt2g+Wtob5mX4IvN90HYlnARcTRbmQ=
 github.com/streamingfast/logging v0.0.0-20210811175431-f3b44b61606a/go.mod h1:4GdqELhZOXj4xwc4IaBmzofzdErGynnaSzuzxy0ZIBo=
@@ -395,6 +397,8 @@ github.com/streamingfast/substreams-sink v0.3.2 h1:ablCqa/Ki9GcfOOk6nQijDsT2kYMF
 github.com/streamingfast/substreams-sink v0.3.2/go.mod h1:nBPwmsjz+CV0HT5Vmp0XTiu+RjP8CbdhD5u+uC3lo84=
 github.com/streamingfast/substreams-sink v0.3.3-0.20231222213313-af36d45db340 h1:MeYBBV80B3o+4rnqcbi3XJrdBOnTxWvLnvpOWsOJYCI=
 github.com/streamingfast/substreams-sink v0.3.3-0.20231222213313-af36d45db340/go.mod h1:R7/lU2PZGQUQhVUCGQQu+ZrUj61JsGT6KG2vzRTO7J8=
+github.com/streamingfast/substreams-sink v0.3.3 h1:8RUPz1lY4dbjD4Gn35SQpgNl7llWSt2Gna3B5dRc32g=
+github.com/streamingfast/substreams-sink v0.3.3/go.mod h1:ZNP1zvqS1tx29i+/5jUNmxdm1JkVOEBAsWUpQMBOFHo=
 github.com/streamingfast/substreams-sink-database-changes v1.3.0 h1:oeNv7P/9r5kxOgFZ2UENaB2RgXAt6mshjeIfkmielY4=
 github.com/streamingfast/substreams-sink-database-changes v1.3.0/go.mod h1:bul4OLl22/M8LlYO9+sxA/5ghUrV7eYrG5NSlfm5m5k=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
