@@ -12,7 +12,7 @@ import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 
 const TOKEN = process.env.SUBSTREAMS_API_TOKEN
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
-const SPKG = "https://storage.googleapis.com/substreams-registry/spkg/ethereum-explorer-v0.1.1.spkg"
+const SPKG = "https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg"
 const MODULE = "map_block_meta"
 const START_BLOCK = '100000'
 const STOP_BLOCK = '+10000'
