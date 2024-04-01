@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
-    "@substreams/core": "^0.1.19",
+    "@substreams/core": "0.16.0",
     "@substreams/manifest": "^0.0.9",
     "@connectrpc/connect-web": "1.4.0",
     "@connectrpc/connect": "1.4.0"

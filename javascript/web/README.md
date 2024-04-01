@@ -14,7 +14,7 @@ npm run install
 If you have previously run the Substreams CLI, you can find the token at the `$SUBSTREAMS_API_TOKEN` environment variable of your system.
 
 ```javascript
-const TOKEN = "SUBSTREAMS-TOKEN"
+const TOKEN = "<SUBSTREAMS-TOKEN>"
 ```
 
 

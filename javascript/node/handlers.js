@@ -44,15 +44,17 @@ const handleBlockUndoSignalMessage = async (response) => {
     await writeCursor(lastValidCursor);
 }
 
-export const handleResponseMessage = async (response, registry) => {
-    switch(response.message.case) {
+export const handleResponseMessage = async (message, registry) => {
+    switch(message.case) {
         case "blockScopedData":
-            handleBlockScopedDataMessage(response.message.value, registry);
+            handleBlockScopedDataMessage(message.value, registry);
             break;
 
         case "blockUndoSignal":
-            handleBlockUndoSignalMessage(response.message.value);
+            handleBlockUndoSignalMessage(message.value);
             break;
+        case "progress":
+            handleProgressMessage(message.value)
     }
 }
 
