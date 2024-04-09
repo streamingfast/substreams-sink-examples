@@ -7,7 +7,6 @@ import type { BlockScopedData, BlockUndoSignal, ModulesProgress } from '@substre
 import { type IMessageTypeRegistry } from "@bufbuild/protobuf";
 import { getCursor, writeCursor } from "@/substreams/cursor";
 import { Handlers } from "@/substreams/types";
-import { useQueue } from "@uidotdev/usehooks";
 import { SPKG } from "@/substreams/constants";
 
 export default function Home() {
