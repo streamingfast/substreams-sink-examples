@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { injectBigIntToJSON } from "@/substreams/util";
+
+// Polyfills
+injectBigIntToJSON()
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {

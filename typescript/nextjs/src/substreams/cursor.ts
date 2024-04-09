@@ -7,9 +7,9 @@ export const getCursor = (): string|null => {
         return null;
     }
 }
-  
+
 // In this example, the cursor is persisted in the local storage of the browser.
-export const writeCursor = async (cursor: string) => {
+export const writeCursor = (cursor: string) => {
     try {
         localStorage.setItem(CURSOR_LOCAL_STORAGE, cursor);
     } catch (e) {

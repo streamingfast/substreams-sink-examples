@@ -1,9 +1,9 @@
 import { type IMessageTypeRegistry } from "@bufbuild/protobuf";
 import type { BlockScopedData, BlockUndoSignal, ModulesProgress } from '@substreams/core/proto';
 
-export type BlockScopedDataHandler = (response: BlockScopedData, registry: IMessageTypeRegistry) => Promise<void>;
-export type BlockUndoSignalHandler = (response: BlockUndoSignal) => Promise<void>;
-export type ModuleProgressHandler = (response: ModulesProgress) => Promise<void>;
+export type BlockScopedDataHandler = (response: BlockScopedData, registry: IMessageTypeRegistry) => void;
+export type BlockUndoSignalHandler = (response: BlockUndoSignal) => void;
+export type ModuleProgressHandler = (response: ModulesProgress) => void;
 
 export class Handlers {
     blockScopedDataHandler: BlockScopedDataHandler;
@@ -12,7 +12,7 @@ export class Handlers {
 
     constructor(
         blockScopedDataHandler: BlockScopedDataHandler,
-        blockUndoSignalHandler: BlockUndoSignalHandler, 
+        blockUndoSignalHandler: BlockUndoSignalHandler,
         moduleProgressHandler: ModuleProgressHandler
     ) {
         this.blockScopedDataHandler = blockScopedDataHandler;

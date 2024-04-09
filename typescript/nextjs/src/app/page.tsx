@@ -7,22 +7,27 @@ import type { BlockScopedData, BlockUndoSignal, ModulesProgress } from '@substre
 import { type IMessageTypeRegistry } from "@bufbuild/protobuf";
 import { getCursor, writeCursor } from "@/substreams/cursor";
 import { Handlers } from "@/substreams/types";
-import { objectToJsonString } from "@/substreams/util";
 import { useQueue } from "@uidotdev/usehooks";
 import { SPKG } from "@/substreams/constants";
 
 export default function Home() {
-  
-  // Store blocks on a queue
-  const { add, queue } = useQueue([]);
-  // Keep state of errors
-  const [error, setError] = useState<string|null>(null);
-  // Keep state of cursor
-  const [cursor, setCursor] = useState<string|null>(null);
 
-  const blockScopeDataHandler = async (response: BlockScopedData, registry: IMessageTypeRegistry) => {
+  console.log("Rendering Home")
+
+  // Keep state of errors
+  const [error, setError] = useState<unknown>();
+
+  // Store blocks on a queue
+  const [blocks, setBlocks] = useState<string[]>([]);
+
+
+  // Keep state of cursor
+  const [cursor, setCursor] = useState<string>();
+
+  const blockScopeDataHandler = (response: BlockScopedData, registry: IMessageTypeRegistry) => {
     const output = response.output?.mapOutput;
     const cursor = response.cursor;
+
 
     if (output !== undefined) {
         const message = output.unpack(registry);
@@ -34,9 +39,9 @@ export default function Home() {
         const outputAsJson = output.toJson({typeRegistry: registry});
 
         // Add output to the queue
-        add(JSON.stringify(outputAsJson));
-        
-        await writeCursor(cursor);
+        setBlocks((prev) => [...prev, JSON.stringify(outputAsJson)])
+
+        writeCursor(cursor);
         setCursor(cursor);
     }
   }
@@ -48,10 +53,10 @@ export default function Home() {
       Because of the fork, you have probably read incorrect blocks in the "handleBlockScopedDataMessage" function,
       so you must rewind back to the last valid block.
   */
-  const blockUndoSignalHandler = async (response: BlockUndoSignal) => {
+  const blockUndoSignalHandler = (response: BlockUndoSignal) => {
     const lastValidBlock = response.lastValidBlock;
     const lastValidCursor = response.lastValidCursor;
-    
+
     /* The blockchain you are streaming from undo 1 or more blocks and you must now handle that case.
       The field `response.message.<last_valid_block>` contains the last valid block, you must undo whatever
       has been done prior that (so for data where `block_number > last_valid_block`). Once undo, you must also
@@ -59,11 +64,11 @@ export default function Home() {
     */
     console.log(`Blockchain undo 1 or more blocks, returning to valid block #${lastValidBlock?.number} (${lastValidBlock?.id})`);
 
-    await writeCursor(lastValidCursor);
+    writeCursor(lastValidCursor);
   }
 
-  const progressHandler  = async (message: ModulesProgress) => {
-    console.log(`Progress: ${objectToJsonString(message)}`)
+  const progressHandler  = (message: ModulesProgress) => {
+    console.log(`Progress: ${JSON.stringify(message)}`)
   }
 
   const createHandlers = (): Handlers => {
@@ -73,6 +78,7 @@ export default function Home() {
   useEffect(() => {
     const executeSubstreams = async () => {
       try {
+        console.log("Starting substreams")
         await startSubstreams(createHandlers());
       } catch (e) {
         setError(e);
@@ -80,21 +86,25 @@ export default function Home() {
       }
     }
 
-    setCursor(getCursor())
+    setCursor(getCursor() ?? undefined)
     executeSubstreams();
+
+    return () => {
+      console.log("Stopping substreams (component unmounted)")
+    }
   }, []);
 
   return (
       <div style={{width: '100%'}}>
-        {error !== null && <div>{JSON.stringify(error)}</div>}
-        {error === null && <>
+        {error != null && <div>{JSON.stringify(error)}</div>}
+        {error == null && <>
           <h3>Consuming Substreams package <i>{SPKG}</i></h3>
           <div>
             <h4>Last Committed Cursor:</h4> <i>{cursor ?? <>-</>}</i>
             <h4>Blocks:</h4>
           </div>
           <div style={{overflow: 'scroll'}}>
-            {queue.map(block => <div>{block}</div>)}
+            {blocks.map((block, idx) => <div key={idx}>{block}</div>)}
           </div>
         </>}
       </div>

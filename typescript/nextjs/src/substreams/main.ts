@@ -25,6 +25,10 @@ export const startSubstreams = async (handlers: Handlers) => {
     const registry: IMessageTypeRegistry = createRegistry(pkg);
     const authInterceptor: Interceptor = createAuthInterceptor(TOKEN);
 
+    if (!TOKEN || TOKEN === "<SUBSTREAMS-TOKEN>") {
+        throw new Error("You haven't modified the 'TOKEN' variable assigment in 'src/substreams/constants.ts', please read the 'README.md#getting-started' for further details");
+    }
+
     const transport = createConnectTransport({
         baseUrl: ENDPOINT,
         interceptors: [authInterceptor],
@@ -35,7 +39,7 @@ export const startSubstreams = async (handlers: Handlers) => {
     });
 
     let streaming = true;
-    
+
     // The infite loop handles disconnections. Every time a disconnection error is thrown, the loop will automatically reconnect
     // and start consuming from the latest commited cursor.
     while (streaming) {
@@ -69,7 +73,7 @@ const stream = async (pkg: Package, registry: IMessageTypeRegistry, transport: T
         stopBlockNum: STOP_BLOCK,
         startCursor: getCursor() ?? undefined
     });
-    
+
     // Stream the blocks
     for await (const response of streamBlocks(transport, request)) {
         /*
