@@ -26,7 +26,7 @@ export const startSubstreams = async (handlers: Handlers) => {
     const authInterceptor: Interceptor = createAuthInterceptor(TOKEN);
 
     if (!TOKEN || TOKEN === "<SUBSTREAMS-TOKEN>") {
-        throw new Error("You haven't modified the 'TOKEN' variable assigment in 'src/substreams/constants.ts', please read the 'README.md#getting-started' for further details");
+        throw new Error("You haven't modified the 'TOKEN' variable assignment in 'src/substreams/constants.ts', please read the 'README.md#getting-started' for further details");
     }
 
     const transport = createConnectTransport({
@@ -38,14 +38,14 @@ export const startSubstreams = async (handlers: Handlers) => {
         },
     });
 
-    let streaming = true;
-
     // The infite loop handles disconnections. Every time a disconnection error is thrown, the loop will automatically reconnect
     // and start consuming from the latest commited cursor.
-    while (streaming) {
+    while (true) {
         try {
-            streaming = false;
             await stream(pkg, registry, transport, handlers);
+
+            // Break out of the loop when the stream is finished
+            break;
         } catch (e) {
             if (!isErrorRetryable(e)) {
               console.log(`A fatal error occurred: ${e}`)
@@ -54,7 +54,6 @@ export const startSubstreams = async (handlers: Handlers) => {
 
             console.log(`A retryable error occurred (${e}), retrying after backoff`)
             console.log(e)
-            streaming = true;
             // Add backoff from a an easy to use library
         }
     }

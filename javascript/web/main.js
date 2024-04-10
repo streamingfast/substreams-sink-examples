@@ -23,6 +23,10 @@ const STOP_BLOCK = '+10000'
   The application MUST handle disconnections and commit the provided cursor to avoid missing information.
 */
 const main = async () => {
+  if (!TOKEN || TOKEN === "<SUBSTREAMS-TOKEN>") {
+    throw new Error("You haven't modified the 'TOKEN' variable assignment, please read the 'README.md#getting-started' for further details");
+  }
+
   const pkg = await fetchPackage();
   const registry = createRegistry(pkg);
 
@@ -35,14 +39,14 @@ const main = async () => {
       },
   });
   
-  let streaming = true;
-
   // The infite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
   // and start consuming from the latest commited cursor.
-  while (streaming) {
+  while (true) {
       try {
-          streaming = false;
           await stream(pkg, registry, transport);
+
+          // Break out of the loop when the stream is finished
+          break;
       } catch (e) {
           if (!isErrorRetryable(e)) {
             console.log(`A fatal error occurred: ${e}`)
@@ -50,7 +54,6 @@ const main = async () => {
           }
           console.log(`A retryable error occurred (${e}), retrying after backoff`)
           console.log(e)
-          streaming = true;
       }
   }
 }

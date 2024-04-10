@@ -1,4 +1,4 @@
-## Substreams Sink Examples - JS
+## Substreams Sink Examples - Typescript
 
 The [Substreams JS library](https://github.com/substreams-js/substreams-js) allows you to consume Substreams packages using the Typescript programming language. The library works on both NodeJS and the Browser, but with some differences.
 
@@ -10,5 +10,5 @@ You can read more about this topic in the [Substreams docs](https://substreams.s
 
 ### NodeJS vs Browser
 
-- **Libraries:** running Substreams JS on NodeJS requires using the `@connectrpc/connect-node` library, while consuming packages on the browser requires using `@bufbuild/connect-web`.
+- **Libraries:** running Substreams JS on NodeJS requires using the `@connectrpc/connect-node` library, while consuming packages on the browser requires using `@connectrpc/connect-web`.
 - **Persisting the cursor:** when using NodeJS, you can persist the cursor in a file or a database. When using the browser, you can use the local storage, cookies or an external API. 

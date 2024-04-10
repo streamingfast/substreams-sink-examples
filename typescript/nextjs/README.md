@@ -42,4 +42,4 @@ export type BlockUndoSignalHandler = (response: BlockUndoSignal) => Promise<void
 export type ModuleProgressHandler = (response: ModulesProgress) => Promise<void>;
 ```
 
-You can get more information about the different messages sent by the Substreams proviveder [in the docs](https://substreams.streamingfast.io/documentation/consume/reliability-guarantees).
+You can get more information about the different messages sent by the Substreams provider [in the docs](https://substreams.streamingfast.io/documentation/consume/reliability-guarantees).
