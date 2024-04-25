@@ -1,0 +1,5 @@
+type Transaction @entity {
+  id: ID!
+  to: String!
+  from: String!
+}
