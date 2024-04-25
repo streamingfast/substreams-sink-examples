@@ -5,7 +5,7 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: substreams
-    name: Contract
+    name: Transaction
     network: mainnet
     source:
       startBlock: 17239000
