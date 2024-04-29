@@ -8,7 +8,6 @@ dataSources:
     name: Transaction
     network: mainnet
     source:
-      startBlock: 17239000
       package:
         moduleName: map_filter_transactions
         file: ethereum-explorer-v0.1.2.spkg

@@ -1,9 +1,12 @@
 import { log } from "@graphprotocol/graph-ts";
-import * as assembly from "./pb/assembly";
+import { Transactions } from "./pb/eth/transaction/v1/Transactions";
 import { Transaction } from "../generated/schema";
+import { Protobuf } from 'as-proto/assembly';
 
 export function handleTransactions(bytes: Uint8Array): void {
-    let transactions = assembly.eth.transaction.v1.Transactions.decode(bytes.buffer).transactions;
+    const transactionsProto: Transactions = Protobuf.decode<Transactions>(bytes, Transactions.decode);
+    const transactions = transactionsProto.transactions;
+
     if (transactions.length == 0) {
         log.info("No transactions found", []);
         return;
