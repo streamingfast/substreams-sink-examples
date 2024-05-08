@@ -13,7 +13,7 @@ npm install
 2. Generate the Protobuf of the Ethereum Explorer Substreams:
 
 ```bash
-buf generate --exclude-path="google" ethereum-explorer-v0.1.2.spkg#format=bin
+buf generate --exclude-path="sf/substreams" --type="eth.transaction.v1.Transactions" ethereum-explorer-v0.1.2.spkg#format=bin
 ```
 
 You can follow the full tutorial in the [Substreams documentation](https://substreams.streamingfast.io/documentation/consume/subgraph/triggers).
