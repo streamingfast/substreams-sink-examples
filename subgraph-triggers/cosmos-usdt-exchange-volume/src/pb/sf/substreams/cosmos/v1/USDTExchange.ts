@@ -6,8 +6,8 @@ import { Writer, Reader } from "as-proto/assembly";
 
 export class USDTExchange {
   static encode(message: USDTExchange, writer: Writer): void {
-    writer.uint32(8);
-    writer.int32(message.amount);
+    writer.uint32(10);
+    writer.string(message.amount);
   }
 
   static decode(reader: Reader, length: i32): USDTExchange {
@@ -18,7 +18,7 @@ export class USDTExchange {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.amount = reader.int32();
+          message.amount = reader.string();
           break;
 
         default:
@@ -30,9 +30,9 @@ export class USDTExchange {
     return message;
   }
 
-  amount: i32;
+  amount: string;
 
-  constructor(amount: i32 = 0) {
+  constructor(amount: string = "") {
     this.amount = amount;
   }
 }
