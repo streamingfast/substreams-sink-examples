@@ -25,11 +25,11 @@ export function handleExchanges(bytes: Uint8Array): void {
         const exchangeAmount = BigInt.fromString(exchange.amount);
 
         const entityAmount = BigInt.fromString(entity.amount);
-        entityAmount.plus(exchangeAmount);
-        log.info("Amount added", []);
+        const sumResult = entityAmount.plus(exchangeAmount);
+        log.info("Amount added: {}", [entityAmount.toString()]);
 
-        entity.amount = entityAmount.toString();
+        entity.amount = sumResult.toString();
         entity.save();
-        log.info("Entity saved", []);
+        log.info("Entity saved: {}", [entity.amount]);
     }
 }
