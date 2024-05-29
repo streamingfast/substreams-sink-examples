@@ -224,7 +224,7 @@
     graphql-import-node "^0.0.5"
     js-yaml "^4.1.0"
 
-"@graphprotocol/graph-cli@^0.69.0":
+"@graphprotocol/graph-cli@^0.69.2":
   version "0.69.2"
   resolved "https://registry.npmjs.org/@graphprotocol/graph-cli/-/graph-cli-0.69.2.tgz"
   integrity sha512-zAlnhNpxLReoqsY3MNJdD1r4/bQqIaN2HgVv2jUlt/Tydi41hMsg8jQg542JZabObcQ+BdpQkMmspuuDtwuq+g==

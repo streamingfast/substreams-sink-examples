@@ -6,7 +6,7 @@ schema:
 dataSources:
   - kind: substreams
     name: Transaction
-    network: injective
+    network: injective-mainnet
     source:
       package:
         moduleName: map_usdt_exchanges
