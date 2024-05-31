@@ -1,0 +1,16 @@
+# substreams.yaml
+specVersion: v0.1.0
+package:
+  name: wasm_events
+  version: v0.1.0
+
+network: injective-mainnet
+imports:
+  injective: https://spkg.io/streamingfast/injective-common-v0.1.0.spkg
+
+modules:
+  - name: wasm_events
+    use: injective:filtered_events
+
+params:
+  wasm_events: "wasm"
