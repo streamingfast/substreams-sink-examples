@@ -4,6 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "publish": "graph publish",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ subraphtest",
     "create-local": "graph create --node http://localhost:8020/ subraphtest",
     "remove-local": "graph remove --node http://localhost:8020/ subraphtest",

@@ -9,10 +9,10 @@ dataSources:
     network: injective-mainnet
     source:
       package:
-        moduleName: map_usdt_exchanges
-        file: injective-usdt-volume-v0.1.0.spkg
+        moduleName: wasm_events
+        file: wasm-events-v0.1.0.spkg
     mapping:
       apiVersion: 0.0.7
       kind: substreams/graph-entities
       file: ./src/mapping.ts
-      handler: handleExchanges
+      handler: handleEvents
