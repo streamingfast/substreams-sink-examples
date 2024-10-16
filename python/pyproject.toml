@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "substreams_pysink"
+version = "0.1.0"
+description = "An example showcasing how Python can stream Substreams in real-time through gRPC"
+authors = ["Developers <developers@streamingfast.io>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+grpcio = "^1.67.0"
+protobuf = "^5.28.2"
+requests = "^2.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
