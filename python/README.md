@@ -10,3 +10,9 @@ Five easy steps:
 
 1. Define an `SF_API_TOKEN` environment variable following instructions at https://docs.substreams.dev/documentation/consume/authentication
 1. Run the Python sink using `poetry run python main.py`
+
+#### Caveats
+
+- `cursor` management, each `block_scoped_data` message has a cursor, it should be kept in a variable and also persisted to storage in the event the process crashes/terminate. Save a `cursor` when the `block_scoped_data` is fully re-processed, otherwise if you save the cursor and then save block scoped data but processing crashed in the middle, you will reconnect the stream one block too far.
+- gRPC reconnection management, on disconection, the stream should reconnect and should most importantly pass in the `Request` the latest processed cursor.
+- Block undo signal management, outside of `block_scoped_data`, there is one very important signal and it's `block_undo_signal` message. It will be sent when some blocks need to be undone.
