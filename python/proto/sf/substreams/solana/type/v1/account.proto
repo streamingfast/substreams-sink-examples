@@ -1,7 +1,12 @@
 syntax = "proto2";
 import "google/protobuf/timestamp.proto";
 
-package sf.solana.type.v1;
+package sf.substreams.solana.type.v1;
+
+
+message FilteredAccounts {
+  repeated Account accounts = 1;
+}
 
 message AccountBlock {
     required uint64 slot = 1;
