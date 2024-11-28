@@ -1,0 +1,4 @@
+type USDTExchangeVolume @entity {
+  id: ID!
+  amount: String!
+}
