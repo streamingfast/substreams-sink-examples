@@ -1,8 +1,11 @@
 use anyhow::{format_err, Context, Error};
 use chrono::DateTime;
 use futures03::StreamExt;
+use lazy_static::lazy_static;
 use pb::sf::substreams::rpc::v2::{BlockScopedData, BlockUndoSignal};
 use pb::sf::substreams::v1::Package;
+use regex::Regex;
+use semver::Version;
 
 use prost::Message;
 use std::{env, process::exit, sync::Arc};
@@ -13,20 +16,35 @@ mod pb;
 mod substreams;
 mod substreams_stream;
 
+lazy_static! {
+    static ref MODULE_NAME_REGEXP: Regex = Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]{0,63})$").unwrap();
+}
+
+const REGISTRY_URL: &str = "https://spkg.io";
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let args = env::args();
     if args.len() < 4 || args.len() > 5 {
-        println!("usage: stream <endpoint> <spkg> <module> [<start>:<stop>]");
+        println!("usage: <endpoint> <spkg> <module> [<start>:<stop>]");
+        println!();
+        println!("<spkg> can either be the full spkg.io link or `spkg_package@version`");
+        println!();
+        println!("Examples");
+        println!(" cargo run -- mainnet.injective.streamingfast.io:443 injective-common@v0.2.3 all_events 1:10");
         println!();
         println!("The environment variable SUBSTREAMS_API_TOKEN must be set also");
         println!("and should contain a valid Substream API token.");
         exit(1);
     }
 
-    let endpoint_url = env::args().nth(1).unwrap();
+    let mut endpoint_url = env::args().nth(1).unwrap();
     let package_file = env::args().nth(2).unwrap();
     let module_name = env::args().nth(3).unwrap();
+
+    if !endpoint_url.starts_with("http") {
+        endpoint_url = format!("{}://{}", "https", endpoint_url);
+    }
 
     let token_env = env::var("SUBSTREAMS_API_TOKEN").unwrap_or("".to_string());
     let mut token: Option<String> = None;
@@ -41,9 +59,9 @@ async fn main() -> Result<(), Error> {
     let cursor: Option<String> = load_persisted_cursor()?;
 
     let mut stream = SubstreamsStream::new(
-        endpoint.clone(),
+        endpoint,
         cursor,
-        package.modules.clone(),
+        package.modules,
         module_name.to_string(),
         block_range.0,
         block_range.1,
@@ -188,18 +206,69 @@ fn read_block_range(pkg: &Package, module_name: &str) -> Result<(i64, u64), anyh
 }
 
 async fn read_package(input: &str) -> Result<Package, anyhow::Error> {
-    if input.starts_with("http") {
-        return read_http_package(input).await;
+    let mut mutable_input = input.to_string();
+
+    let val = parse_standard_package_and_version(input);
+    if val.is_ok() {
+        let package_and_version = val.unwrap();
+        mutable_input = format!(
+            "{}/v1/packages/{}/{}",
+            REGISTRY_URL, package_and_version.0, package_and_version.1
+        );
+    }
+
+    if mutable_input.starts_with("http") {
+        return read_http_package(&mutable_input).await;
     }
 
     // Assume it's a local file
-    let content =
-        std::fs::read(input).context(format_err!("read package from file '{}'", input))?;
+    let content = std::fs::read(&mutable_input)
+        .context(format_err!("read package from file '{}'", mutable_input))?;
     Package::decode(content.as_ref()).context("decode command")
 }
-
 async fn read_http_package(input: &str) -> Result<Package, anyhow::Error> {
     let body = reqwest::get(input).await?.bytes().await?;
 
     Package::decode(body).context("decode command")
+}
+
+fn parse_standard_package_and_version(input: &str) -> Result<(String, String), Error> {
+    let parts: Vec<&str> = input.split('@').collect();
+    if parts.len() > 2 {
+        return Err(format_err!(
+            "package name: {} does not follow the convention of <package>@<version>",
+            input
+        ));
+    }
+
+    let package_name = parts[0].to_string();
+    if !MODULE_NAME_REGEXP.is_match(&package_name) {
+        return Err(format_err!(
+            "package name {} does not match regexp {}",
+            package_name,
+            MODULE_NAME_REGEXP.as_str()
+        ));
+    }
+
+    if parts.len() == 1
+        || parts
+            .get(1)
+            .map_or(true, |v| v.is_empty() || *v == "latest")
+    {
+        return Ok((package_name, "latest".to_string()));
+    }
+
+    let version = parts[1];
+    if !is_valid_version(&version.replace("v", "")) {
+        return Err(format_err!(
+            "version '{}' is not valid Semver format",
+            version
+        ));
+    }
+
+    Ok((package_name, version.to_string()))
+}
+
+fn is_valid_version(version: &str) -> bool {
+    Version::parse(version).is_ok()
 }
