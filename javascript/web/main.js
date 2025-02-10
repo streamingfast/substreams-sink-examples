@@ -3,7 +3,6 @@ import {
   streamBlocks,
   createAuthInterceptor,
   createRegistry,
-  applyParams,
   fetchSubstream
 } from '@substreams/core';
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -13,8 +12,8 @@ import { isErrorRetryable } from "./error.js"
 
 const TOKEN = "<SUBSTREAMS-TOKEN>"
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
-const SPKG = "https://spkg.io/streamingfast/solana_common-v0.3.3.spkg"
-const MODULE = "transactions_by_programid_and_account_without_votes"
+const SPKG = "https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg"
+const MODULE = "map_block_meta"
 const START_BLOCK = '100000'
 const STOP_BLOCK = '+10000'
 
@@ -29,7 +28,6 @@ const main = async () => {
   }
 
   const pkg = await fetchPackage();
-  applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:3EsvvyqporKr5DVpzWsdYCphpXqXnQBMQLGNwSH5MmRE"], pkg.Modules);
   const registry = createRegistry(pkg);
 
   const transport = createConnectTransport({
