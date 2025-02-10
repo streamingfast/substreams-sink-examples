@@ -1,0 +1,16 @@
+import { getProtoTypeName } from "./get-proto-type-name.js";
+export function getProtoType(typeName, registry) {
+  const protoTypeName = getProtoTypeName(typeName);
+  if (protoTypeName === undefined) {
+    return undefined;
+  }
+  return registry.findMessage(protoTypeName);
+}
+export function getProtoTypeOrThrow(typeName, registry, message = `Type "${typeName}" not found in registry`) {
+  const type = getProtoType(typeName, registry);
+  if (type === undefined) {
+    throw new Error(message);
+  }
+  return type;
+}
+//# sourceMappingURL=get-proto-type.js.map

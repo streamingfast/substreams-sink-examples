@@ -1,0 +1,1 @@
+{"version":3,"file":"is-store-module.d.ts","sourceRoot":"","sources":["../../../src/utils/is-store-module.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,aAAa,CAAC;AAE1C,MAAM,MAAM,WAAW,GAAG,MAAM,GAAG;IAAE,IAAI,EAAE;QAAE,IAAI,EAAE,WAAW,CAAA;KAAE,CAAA;CAAE,CAAC;AAEnE,wBAAgB,aAAa,CAAC,MAAM,EAAE,MAAM,GAAG,MAAM,IAAI,WAAW,CAEnE"}

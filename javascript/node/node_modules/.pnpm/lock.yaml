@@ -1,0 +1,226 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@connectrpc/connect':
+        specifier: 1.3.0
+        version: 1.3.0(@bufbuild/protobuf@1.10.0)
+      '@connectrpc/connect-node':
+        specifier: 1.3.0
+        version: 1.3.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.3.0(@bufbuild/protobuf@1.10.0))
+      '@substreams/core':
+        specifier: 0.16.0
+        version: 0.16.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.3.0(@bufbuild/protobuf@1.10.0))
+      '@substreams/manifest':
+        specifier: ^0.0.9
+        version: 0.0.9
+
+packages:
+
+  '@bufbuild/buf-darwin-arm64@1.50.0':
+    resolution: {integrity: sha512-ldj1s0hMhZlz0N4+fqs9jGqC7jKAcsfLNp8kM+G+6XTPh8GWA/U1sYRdHhAlv1+3STfWhGxAhrNGRRVvvimALQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@bufbuild/buf-darwin-x64@1.50.0':
+    resolution: {integrity: sha512-0ODFAnDVr0UOIUHGrI3vA3Cycec186BP5PFOuW6bALxBVN52Lqjjj+/+bVhvbBQlYo3rkxOtxEdoWGHZJrHhHA==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@bufbuild/buf-linux-aarch64@1.50.0':
+    resolution: {integrity: sha512-Dp0YzLOW7O+C8bAm6/Q2HSrTYpDs2SxQXx+dBNxUotMpzx+uaUvqXb3EGr7s07ro+FsT0sFjzKTBcuCwkj+guQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@bufbuild/buf-linux-armv7@1.50.0':
+    resolution: {integrity: sha512-EMYRKSJ4kZo+OiHvMTYM+O27lf/okaf+bk1agRUTmBccp+qoGEC0R3DB/powFf/FURkUF7vKUS4T0GC/4n8OVA==}
+    engines: {node: '>=12'}
+    cpu: [arm]
+    os: [linux]
+
+  '@bufbuild/buf-linux-x64@1.50.0':
+    resolution: {integrity: sha512-1G6ZQLXYoCXl8ZmCivUuknc6BiMz2bMtfpzYurFhj9wCIQTZsgepTBoiXHTcEdu2fjYAFxRGo4o+ZALU1umY0g==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [linux]
+
+  '@bufbuild/buf-win32-arm64@1.50.0':
+    resolution: {integrity: sha512-KpbI+f0TnGaa4KlPQXCLx8ZWKfO2pMD1kvVjAaktmm9OUoP9HrvZJ11tDEiFEFbrKbapCIhCCC3XWaldEDJWcA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@bufbuild/buf-win32-x64@1.50.0':
+    resolution: {integrity: sha512-gA9aVuZYfh3pmWNYxmnK6thlcqyu2ht8haFhdB0w14Rtj200FAsMmzF7CPWvXQrV5g0pqXPwoMjZigT4OJHOXg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [win32]
+
+  '@bufbuild/buf@1.50.0':
+    resolution: {integrity: sha512-XcdB5/Ls8k1eVcgNwUsRZEhCqiHgsnN+uEk/aDh0urGeiWc/dN6c89ZnAnI9/v0AZWzp6/rowoZhThlTl+D0bw==}
+    engines: {node: '>=12'}
+    hasBin: true
+
+  '@bufbuild/connect@0.12.0':
+    resolution: {integrity: sha512-rYn3Akp7teOkvqxguLbf6QKizH37Yeo33lseV+JHDZC19CsAV9wrrZM17Sa+LNEBj/hrYtQF7EIcllgGxhv9aw==}
+    deprecated: Connect has moved to its own org @connectrpc and has a stable v1. Run `npx @connectrpc/connect-migrate@latest` to update. See https://github.com/connectrpc/connect-es/releases/tag/v0.13.1 for details.
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.2.1
+
+  '@bufbuild/protobuf@1.10.0':
+    resolution: {integrity: sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag==}
+
+  '@connectrpc/connect-node@1.3.0':
+    resolution: {integrity: sha512-2fV/z/8MUFOkTn2Gbm7T/qvRfkpt/D/w7ykYqACZRH6VNG/faY4lH2wUZiNkwv9tzTrECKOJFyPsaGs3nRYK3w==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.4.2
+      '@connectrpc/connect': 1.3.0
+
+  '@connectrpc/connect@1.3.0':
+    resolution: {integrity: sha512-kTeWxJnLLtxKc2ZSDN0rIBgwfP8RwcLknthX4AKlIAmN9ZC4gGnCbwp+3BKcP/WH5c8zGBAWqSY3zeqCM+ah7w==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.4.2
+
+  '@effect/data@0.17.6':
+    resolution: {integrity: sha512-/vwz7Jh05eS0qY8kczR/YyJd18d0C+PMtUkAealh4f6gwvhABLGCnktNJTcq/+UHxY0Cbv18r5uaJ4+7PPC+WQ==}
+
+  '@effect/io@0.37.1':
+    resolution: {integrity: sha512-Ez3GfcG+gDDfAiBXtSjJpSrPU5Guiyw69LsYkMtIukFwyNwpHWLhYaVgfVbVjoQasil8KiFSQJSd5DbJL6nqPg==}
+
+  '@effect/schema@0.32.0':
+    resolution: {integrity: sha512-4HJK/cFkVPdIjYICy0eRsL7JuuLJ6mE3aJC5rX9OuUIei/qfctFEEX2NaARjtGX7hACBrRcuJCNwiq+54TTjFw==}
+
+  '@fastify/busboy@2.1.1':
+    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
+    engines: {node: '>=14'}
+
+  '@substreams/core@0.1.19':
+    resolution: {integrity: sha512-GEEkhJb1XUkBvlRzlA7JOXJnS5XmKO4C6ZPz2djxKkRr98EEWH2C1EGCiK/vBYt2trsOVnq/fYizaqRl6vXW5Q==}
+
+  '@substreams/core@0.16.0':
+    resolution: {integrity: sha512-1HDFEZvH5EkHFykBfekqBtm3YKFWIMMHQaSa1T+Z8u4wcn8DIaiVOywvBtVmBT6R2pBaqbz4j14ndXN6r+IV6Q==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.7.2
+      '@connectrpc/connect': ^1.3.0
+
+  '@substreams/manifest@0.0.9':
+    resolution: {integrity: sha512-U/azNhOZle3S6lUCpnQ+P90V8GvtQWMMH8hEX3/TCPRz/hkOFm1PG0+6t6VYVgXX+yTCPrAVpYiyGUdfkaW9Bw==}
+
+  fast-check@3.23.2:
+    resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
+    engines: {node: '>=8.0.0'}
+
+  pure-rand@6.1.0:
+    resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
+
+  undici@5.28.5:
+    resolution: {integrity: sha512-zICwjrDrcrUE0pyyJc1I2QzBkLM8FINsgOrt6WjA+BgajVq9Nxu2PbFFXUrAggLfDXlZGZBVZYw7WNV5KiBiBA==}
+    engines: {node: '>=14.0'}
+
+  yaml@2.7.0:
+    resolution: {integrity: sha512-+hSoy/QHluxmC9kCIJyL/uyFmLmc+e5CFR5Wa+bpIhIj85LVb9ZH2nVnqrHoSvKogwODv0ClqZkmiSSaIH5LTA==}
+    engines: {node: '>= 14'}
+    hasBin: true
+
+snapshots:
+
+  '@bufbuild/buf-darwin-arm64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-darwin-x64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-linux-aarch64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-linux-armv7@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-linux-x64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-win32-arm64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf-win32-x64@1.50.0':
+    optional: true
+
+  '@bufbuild/buf@1.50.0':
+    optionalDependencies:
+      '@bufbuild/buf-darwin-arm64': 1.50.0
+      '@bufbuild/buf-darwin-x64': 1.50.0
+      '@bufbuild/buf-linux-aarch64': 1.50.0
+      '@bufbuild/buf-linux-armv7': 1.50.0
+      '@bufbuild/buf-linux-x64': 1.50.0
+      '@bufbuild/buf-win32-arm64': 1.50.0
+      '@bufbuild/buf-win32-x64': 1.50.0
+
+  '@bufbuild/connect@0.12.0(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+
+  '@bufbuild/protobuf@1.10.0': {}
+
+  '@connectrpc/connect-node@1.3.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.3.0(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.3.0(@bufbuild/protobuf@1.10.0)
+      undici: 5.28.5
+
+  '@connectrpc/connect@1.3.0(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+
+  '@effect/data@0.17.6': {}
+
+  '@effect/io@0.37.1':
+    dependencies:
+      '@effect/data': 0.17.6
+
+  '@effect/schema@0.32.0':
+    dependencies:
+      '@effect/data': 0.17.6
+      '@effect/io': 0.37.1
+      fast-check: 3.23.2
+
+  '@fastify/busboy@2.1.1': {}
+
+  '@substreams/core@0.1.19':
+    dependencies:
+      '@bufbuild/connect': 0.12.0(@bufbuild/protobuf@1.10.0)
+      '@bufbuild/protobuf': 1.10.0
+
+  '@substreams/core@0.16.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.3.0(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.3.0(@bufbuild/protobuf@1.10.0)
+
+  '@substreams/manifest@0.0.9':
+    dependencies:
+      '@bufbuild/buf': 1.50.0
+      '@bufbuild/protobuf': 1.10.0
+      '@effect/schema': 0.32.0
+      '@substreams/core': 0.1.19
+      yaml: 2.7.0
+
+  fast-check@3.23.2:
+    dependencies:
+      pure-rand: 6.1.0
+
+  pure-rand@6.1.0: {}
+
+  undici@5.28.5:
+    dependencies:
+      '@fastify/busboy': 2.1.1
+
+  yaml@2.7.0: {}

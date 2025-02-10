@@ -1,0 +1,1 @@
+{"version":3,"file":"get-proto-type.d.ts","sourceRoot":"","sources":["../../../src/utils/get-proto-type.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,oBAAoB,EAAE,MAAM,oBAAoB,CAAC;AAG/D,wBAAgB,YAAY,CAAC,QAAQ,EAAE,MAAM,EAAE,QAAQ,EAAE,oBAAoB,iGAO5E;AAED,wBAAgB,mBAAmB,CACjC,QAAQ,EAAE,MAAM,EAChB,QAAQ,EAAE,oBAAoB,EAC9B,OAAO,SAA6C,qFAQrD"}

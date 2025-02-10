@@ -1,0 +1,6 @@
+export function invariant(condition, description = "Invariant") {
+  if (!condition) {
+    throw new Error(description);
+  }
+}
+//# sourceMappingURL=invariant.js.map

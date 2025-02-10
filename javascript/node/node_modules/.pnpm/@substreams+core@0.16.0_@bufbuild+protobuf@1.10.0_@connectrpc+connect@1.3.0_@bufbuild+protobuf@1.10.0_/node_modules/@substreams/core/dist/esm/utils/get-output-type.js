@@ -1,0 +1,9 @@
+import { getProtoType } from "./get-proto-type.js";
+import { isMapModule } from "./is-map-module.js";
+export function getOutputType(module, registry) {
+  if (!isMapModule(module)) {
+    return undefined;
+  }
+  return getProtoType(module.kind.value.outputType, registry);
+}
+//# sourceMappingURL=get-output-type.js.map

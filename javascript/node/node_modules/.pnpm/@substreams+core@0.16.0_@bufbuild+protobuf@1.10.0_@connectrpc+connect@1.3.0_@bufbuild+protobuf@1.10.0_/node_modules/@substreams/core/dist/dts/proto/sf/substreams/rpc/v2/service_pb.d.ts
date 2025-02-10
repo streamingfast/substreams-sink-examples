@@ -1,0 +1,702 @@
+import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
+import { Any, Message, proto3 } from "@bufbuild/protobuf";
+import { Modules } from "../../v1/modules_pb.js";
+import { BlockRef, Clock } from "../../v1/clock_pb.js";
+/**
+ * @generated from message sf.substreams.rpc.v2.Request
+ */
+export declare class Request extends Message<Request> {
+    /**
+     * @generated from field: int64 start_block_num = 1;
+     */
+    startBlockNum: bigint;
+    /**
+     * @generated from field: string start_cursor = 2;
+     */
+    startCursor: string;
+    /**
+     * @generated from field: uint64 stop_block_num = 3;
+     */
+    stopBlockNum: bigint;
+    /**
+     * With final_block_only, you only receive blocks that are irreversible:
+     * 'final_block_height' will be equal to current block and no 'undo_signal' will ever be sent
+     *
+     * @generated from field: bool final_blocks_only = 4;
+     */
+    finalBlocksOnly: boolean;
+    /**
+     * Substreams has two mode when executing your module(s) either development mode or production
+     * mode. Development and production modes impact the execution of Substreams, important aspects
+     * of execution include:
+     * * The time required to reach the first byte.
+     * * The speed that large ranges get executed.
+     * * The module logs and outputs sent back to the client.
+     *
+     * By default, the engine runs in developer mode, with richer and deeper output. Differences
+     * between production and development modes include:
+     * * Forward parallel execution is enabled in production mode and disabled in development mode
+     * * The time required to reach the first byte in development mode is faster than in production mode.
+     *
+     * Specific attributes of development mode include:
+     * * The client will receive all of the executed module's logs.
+     * * It's possible to request specific store snapshots in the execution tree (via `debug_initial_store_snapshot_for_modules`).
+     * * Multiple module's output is possible.
+     *
+     * With production mode`, however, you trade off functionality for high speed enabling forward
+     * parallel execution of module ahead of time.
+     *
+     * @generated from field: bool production_mode = 5;
+     */
+    productionMode: boolean;
+    /**
+     * @generated from field: string output_module = 6;
+     */
+    outputModule: string;
+    /**
+     * @generated from field: sf.substreams.v1.Modules modules = 7;
+     */
+    modules?: Modules;
+    /**
+     * Available only in developer mode
+     *
+     * @generated from field: repeated string debug_initial_store_snapshot_for_modules = 10;
+     */
+    debugInitialStoreSnapshotForModules: string[];
+    constructor(data?: PartialMessage<Request>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.Request";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Request;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Request;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Request;
+    static equals(a: Request | PlainMessage<Request> | undefined, b: Request | PlainMessage<Request> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.Response
+ */
+export declare class Response extends Message<Response> {
+    /**
+     * @generated from oneof sf.substreams.rpc.v2.Response.message
+     */
+    message: {
+        /**
+         * Always sent first
+         *
+         * @generated from field: sf.substreams.rpc.v2.SessionInit session = 1;
+         */
+        value: SessionInit;
+        case: "session";
+    } | {
+        /**
+         * Progress of data preparation, before sending in the stream of `data` events.
+         *
+         * @generated from field: sf.substreams.rpc.v2.ModulesProgress progress = 2;
+         */
+        value: ModulesProgress;
+        case: "progress";
+    } | {
+        /**
+         * @generated from field: sf.substreams.rpc.v2.BlockScopedData block_scoped_data = 3;
+         */
+        value: BlockScopedData;
+        case: "blockScopedData";
+    } | {
+        /**
+         * @generated from field: sf.substreams.rpc.v2.BlockUndoSignal block_undo_signal = 4;
+         */
+        value: BlockUndoSignal;
+        case: "blockUndoSignal";
+    } | {
+        /**
+         * @generated from field: sf.substreams.rpc.v2.Error fatal_error = 5;
+         */
+        value: Error;
+        case: "fatalError";
+    } | {
+        /**
+         * Available only in developer mode, and only if `debug_initial_store_snapshot_for_modules` is set.
+         *
+         * @generated from field: sf.substreams.rpc.v2.InitialSnapshotData debug_snapshot_data = 10;
+         */
+        value: InitialSnapshotData;
+        case: "debugSnapshotData";
+    } | {
+        /**
+         * Available only in developer mode, and only if `debug_initial_store_snapshot_for_modules` is set.
+         *
+         * @generated from field: sf.substreams.rpc.v2.InitialSnapshotComplete debug_snapshot_complete = 11;
+         */
+        value: InitialSnapshotComplete;
+        case: "debugSnapshotComplete";
+    } | {
+        case: undefined;
+        value?: undefined;
+    };
+    constructor(data?: PartialMessage<Response>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.Response";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Response;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Response;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Response;
+    static equals(a: Response | PlainMessage<Response> | undefined, b: Response | PlainMessage<Response> | undefined): boolean;
+}
+/**
+ * BlockUndoSignal informs you that every bit of data
+ * with a block number above 'last_valid_block' has been reverted
+ * on-chain. Delete that data and restart from 'last_valid_cursor'
+ *
+ * @generated from message sf.substreams.rpc.v2.BlockUndoSignal
+ */
+export declare class BlockUndoSignal extends Message<BlockUndoSignal> {
+    /**
+     * @generated from field: sf.substreams.v1.BlockRef last_valid_block = 1;
+     */
+    lastValidBlock?: BlockRef;
+    /**
+     * @generated from field: string last_valid_cursor = 2;
+     */
+    lastValidCursor: string;
+    constructor(data?: PartialMessage<BlockUndoSignal>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.BlockUndoSignal";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlockUndoSignal;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlockUndoSignal;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlockUndoSignal;
+    static equals(a: BlockUndoSignal | PlainMessage<BlockUndoSignal> | undefined, b: BlockUndoSignal | PlainMessage<BlockUndoSignal> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.BlockScopedData
+ */
+export declare class BlockScopedData extends Message<BlockScopedData> {
+    /**
+     * @generated from field: sf.substreams.rpc.v2.MapModuleOutput output = 1;
+     */
+    output?: MapModuleOutput;
+    /**
+     * @generated from field: sf.substreams.v1.Clock clock = 2;
+     */
+    clock?: Clock;
+    /**
+     * @generated from field: string cursor = 3;
+     */
+    cursor: string;
+    /**
+     * Non-deterministic, allows substreams-sink to let go of their undo data.
+     *
+     * @generated from field: uint64 final_block_height = 4;
+     */
+    finalBlockHeight: bigint;
+    /**
+     * @generated from field: repeated sf.substreams.rpc.v2.MapModuleOutput debug_map_outputs = 10;
+     */
+    debugMapOutputs: MapModuleOutput[];
+    /**
+     * @generated from field: repeated sf.substreams.rpc.v2.StoreModuleOutput debug_store_outputs = 11;
+     */
+    debugStoreOutputs: StoreModuleOutput[];
+    constructor(data?: PartialMessage<BlockScopedData>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.BlockScopedData";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlockScopedData;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlockScopedData;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlockScopedData;
+    static equals(a: BlockScopedData | PlainMessage<BlockScopedData> | undefined, b: BlockScopedData | PlainMessage<BlockScopedData> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.SessionInit
+ */
+export declare class SessionInit extends Message<SessionInit> {
+    /**
+     * @generated from field: string trace_id = 1;
+     */
+    traceId: string;
+    /**
+     * @generated from field: uint64 resolved_start_block = 2;
+     */
+    resolvedStartBlock: bigint;
+    /**
+     * @generated from field: uint64 linear_handoff_block = 3;
+     */
+    linearHandoffBlock: bigint;
+    /**
+     * @generated from field: uint64 max_parallel_workers = 4;
+     */
+    maxParallelWorkers: bigint;
+    constructor(data?: PartialMessage<SessionInit>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.SessionInit";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionInit;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionInit;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionInit;
+    static equals(a: SessionInit | PlainMessage<SessionInit> | undefined, b: SessionInit | PlainMessage<SessionInit> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.InitialSnapshotComplete
+ */
+export declare class InitialSnapshotComplete extends Message<InitialSnapshotComplete> {
+    /**
+     * @generated from field: string cursor = 1;
+     */
+    cursor: string;
+    constructor(data?: PartialMessage<InitialSnapshotComplete>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.InitialSnapshotComplete";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InitialSnapshotComplete;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InitialSnapshotComplete;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InitialSnapshotComplete;
+    static equals(a: InitialSnapshotComplete | PlainMessage<InitialSnapshotComplete> | undefined, b: InitialSnapshotComplete | PlainMessage<InitialSnapshotComplete> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.InitialSnapshotData
+ */
+export declare class InitialSnapshotData extends Message<InitialSnapshotData> {
+    /**
+     * @generated from field: string module_name = 1;
+     */
+    moduleName: string;
+    /**
+     * @generated from field: repeated sf.substreams.rpc.v2.StoreDelta deltas = 2;
+     */
+    deltas: StoreDelta[];
+    /**
+     * @generated from field: uint64 sent_keys = 4;
+     */
+    sentKeys: bigint;
+    /**
+     * @generated from field: uint64 total_keys = 3;
+     */
+    totalKeys: bigint;
+    constructor(data?: PartialMessage<InitialSnapshotData>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.InitialSnapshotData";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InitialSnapshotData;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InitialSnapshotData;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InitialSnapshotData;
+    static equals(a: InitialSnapshotData | PlainMessage<InitialSnapshotData> | undefined, b: InitialSnapshotData | PlainMessage<InitialSnapshotData> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.MapModuleOutput
+ */
+export declare class MapModuleOutput extends Message<MapModuleOutput> {
+    /**
+     * @generated from field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from field: google.protobuf.Any map_output = 2;
+     */
+    mapOutput?: Any;
+    /**
+     * DebugOutputInfo is available in non-production mode only
+     *
+     * @generated from field: sf.substreams.rpc.v2.OutputDebugInfo debug_info = 10;
+     */
+    debugInfo?: OutputDebugInfo;
+    constructor(data?: PartialMessage<MapModuleOutput>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.MapModuleOutput";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MapModuleOutput;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MapModuleOutput;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MapModuleOutput;
+    static equals(a: MapModuleOutput | PlainMessage<MapModuleOutput> | undefined, b: MapModuleOutput | PlainMessage<MapModuleOutput> | undefined): boolean;
+}
+/**
+ * StoreModuleOutput are produced for store modules in development mode.
+ * It is not possible to retrieve store models in production, with parallelization
+ * enabled. If you need the deltas directly, write a pass through mapper module
+ * that will get them down to you.
+ *
+ * @generated from message sf.substreams.rpc.v2.StoreModuleOutput
+ */
+export declare class StoreModuleOutput extends Message<StoreModuleOutput> {
+    /**
+     * @generated from field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from field: repeated sf.substreams.rpc.v2.StoreDelta debug_store_deltas = 2;
+     */
+    debugStoreDeltas: StoreDelta[];
+    /**
+     * @generated from field: sf.substreams.rpc.v2.OutputDebugInfo debug_info = 10;
+     */
+    debugInfo?: OutputDebugInfo;
+    constructor(data?: PartialMessage<StoreModuleOutput>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.StoreModuleOutput";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StoreModuleOutput;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StoreModuleOutput;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StoreModuleOutput;
+    static equals(a: StoreModuleOutput | PlainMessage<StoreModuleOutput> | undefined, b: StoreModuleOutput | PlainMessage<StoreModuleOutput> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.OutputDebugInfo
+ */
+export declare class OutputDebugInfo extends Message<OutputDebugInfo> {
+    /**
+     * @generated from field: repeated string logs = 1;
+     */
+    logs: string[];
+    /**
+     * LogsTruncated is a flag that tells you if you received all the logs or if they
+     * were truncated because you logged too much (fixed limit currently is set to 128 KiB).
+     *
+     * @generated from field: bool logs_truncated = 2;
+     */
+    logsTruncated: boolean;
+    /**
+     * @generated from field: bool cached = 3;
+     */
+    cached: boolean;
+    constructor(data?: PartialMessage<OutputDebugInfo>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.OutputDebugInfo";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OutputDebugInfo;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OutputDebugInfo;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OutputDebugInfo;
+    static equals(a: OutputDebugInfo | PlainMessage<OutputDebugInfo> | undefined, b: OutputDebugInfo | PlainMessage<OutputDebugInfo> | undefined): boolean;
+}
+/**
+ * ModulesProgress is a message that is sent every 500ms
+ *
+ * @generated from message sf.substreams.rpc.v2.ModulesProgress
+ */
+export declare class ModulesProgress extends Message<ModulesProgress> {
+    /**
+     * List of jobs running on tier2 servers
+     *
+     * @generated from field: repeated sf.substreams.rpc.v2.Job running_jobs = 2;
+     */
+    runningJobs: Job[];
+    /**
+     * Execution statistics for each module
+     *
+     * @generated from field: repeated sf.substreams.rpc.v2.ModuleStats modules_stats = 3;
+     */
+    modulesStats: ModuleStats[];
+    /**
+     * Stages definition and completed block ranges
+     *
+     * @generated from field: repeated sf.substreams.rpc.v2.Stage stages = 4;
+     */
+    stages: Stage[];
+    /**
+     * @generated from field: sf.substreams.rpc.v2.ProcessedBytes processed_bytes = 5;
+     */
+    processedBytes?: ProcessedBytes;
+    constructor(data?: PartialMessage<ModulesProgress>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.ModulesProgress";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModulesProgress;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModulesProgress;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModulesProgress;
+    static equals(a: ModulesProgress | PlainMessage<ModulesProgress> | undefined, b: ModulesProgress | PlainMessage<ModulesProgress> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.ProcessedBytes
+ */
+export declare class ProcessedBytes extends Message<ProcessedBytes> {
+    /**
+     * @generated from field: uint64 total_bytes_read = 1;
+     */
+    totalBytesRead: bigint;
+    /**
+     * @generated from field: uint64 total_bytes_written = 2;
+     */
+    totalBytesWritten: bigint;
+    constructor(data?: PartialMessage<ProcessedBytes>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.ProcessedBytes";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProcessedBytes;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProcessedBytes;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProcessedBytes;
+    static equals(a: ProcessedBytes | PlainMessage<ProcessedBytes> | undefined, b: ProcessedBytes | PlainMessage<ProcessedBytes> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.Error
+ */
+export declare class Error extends Message<Error> {
+    /**
+     * @generated from field: string module = 1;
+     */
+    module: string;
+    /**
+     * @generated from field: string reason = 2;
+     */
+    reason: string;
+    /**
+     * @generated from field: repeated string logs = 3;
+     */
+    logs: string[];
+    /**
+     * FailureLogsTruncated is a flag that tells you if you received all the logs or if they
+     * were truncated because you logged too much (fixed limit currently is set to 128 KiB).
+     *
+     * @generated from field: bool logs_truncated = 4;
+     */
+    logsTruncated: boolean;
+    constructor(data?: PartialMessage<Error>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.Error";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Error;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Error;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Error;
+    static equals(a: Error | PlainMessage<Error> | undefined, b: Error | PlainMessage<Error> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.Job
+ */
+export declare class Job extends Message<Job> {
+    /**
+     * @generated from field: uint32 stage = 1;
+     */
+    stage: number;
+    /**
+     * @generated from field: uint64 start_block = 2;
+     */
+    startBlock: bigint;
+    /**
+     * @generated from field: uint64 stop_block = 3;
+     */
+    stopBlock: bigint;
+    /**
+     * @generated from field: uint64 processed_blocks = 4;
+     */
+    processedBlocks: bigint;
+    /**
+     * @generated from field: uint64 duration_ms = 5;
+     */
+    durationMs: bigint;
+    constructor(data?: PartialMessage<Job>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.Job";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Job;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Job;
+    static equals(a: Job | PlainMessage<Job> | undefined, b: Job | PlainMessage<Job> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.Stage
+ */
+export declare class Stage extends Message<Stage> {
+    /**
+     * @generated from field: repeated string modules = 1;
+     */
+    modules: string[];
+    /**
+     * @generated from field: repeated sf.substreams.rpc.v2.BlockRange completed_ranges = 2;
+     */
+    completedRanges: BlockRange[];
+    constructor(data?: PartialMessage<Stage>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.Stage";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Stage;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Stage;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Stage;
+    static equals(a: Stage | PlainMessage<Stage> | undefined, b: Stage | PlainMessage<Stage> | undefined): boolean;
+}
+/**
+ * ModuleStats gathers metrics and statistics from each module, running on tier1 or tier2
+ * All the 'count' and 'time_ms' values may include duplicate for each stage going over that module
+ *
+ * @generated from message sf.substreams.rpc.v2.ModuleStats
+ */
+export declare class ModuleStats extends Message<ModuleStats> {
+    /**
+     * name of the module
+     *
+     * @generated from field: string name = 1;
+     */
+    name: string;
+    /**
+     * total_processed_blocks is the sum of blocks sent to that module code
+     *
+     * @generated from field: uint64 total_processed_block_count = 2;
+     */
+    totalProcessedBlockCount: bigint;
+    /**
+     * total_processing_time_ms is the sum of all time spent running that module code
+     *
+     * @generated from field: uint64 total_processing_time_ms = 3;
+     */
+    totalProcessingTimeMs: bigint;
+    /**
+     * // external_calls are chain-specific intrinsics, like "Ethereum RPC calls".
+     *
+     * @generated from field: repeated sf.substreams.rpc.v2.ExternalCallMetric external_call_metrics = 4;
+     */
+    externalCallMetrics: ExternalCallMetric[];
+    /**
+     * total_store_operation_time_ms is the sum of all time spent running that module code waiting for a store operation (ex: read, write, delete...)
+     *
+     * @generated from field: uint64 total_store_operation_time_ms = 5;
+     */
+    totalStoreOperationTimeMs: bigint;
+    /**
+     * total_store_read_count is the sum of all the store Read operations called from that module code
+     *
+     * @generated from field: uint64 total_store_read_count = 6;
+     */
+    totalStoreReadCount: bigint;
+    /**
+     * total_store_write_count is the sum of all store Write operations called from that module code (store-only)
+     *
+     * @generated from field: uint64 total_store_write_count = 10;
+     */
+    totalStoreWriteCount: bigint;
+    /**
+     * total_store_deleteprefix_count is the sum of all store DeletePrefix operations called from that module code (store-only)
+     * note that DeletePrefix can be a costly operation on large stores
+     *
+     * @generated from field: uint64 total_store_deleteprefix_count = 11;
+     */
+    totalStoreDeleteprefixCount: bigint;
+    /**
+     * store_size_bytes is the uncompressed size of the full KV store for that module, from the last 'merge' operation (store-only)
+     *
+     * @generated from field: uint64 store_size_bytes = 12;
+     */
+    storeSizeBytes: bigint;
+    /**
+     * total_store_merging_time_ms is the time spent merging partial stores into a full KV store for that module (store-only)
+     *
+     * @generated from field: uint64 total_store_merging_time_ms = 13;
+     */
+    totalStoreMergingTimeMs: bigint;
+    /**
+     * store_currently_merging is true if there is a merging operation (partial store to full KV store) on the way.
+     *
+     * @generated from field: bool store_currently_merging = 14;
+     */
+    storeCurrentlyMerging: boolean;
+    /**
+     * highest_contiguous_block is the highest block in the highest merged full KV store of that module (store-only)
+     *
+     * @generated from field: uint64 highest_contiguous_block = 15;
+     */
+    highestContiguousBlock: bigint;
+    constructor(data?: PartialMessage<ModuleStats>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.ModuleStats";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModuleStats;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModuleStats;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModuleStats;
+    static equals(a: ModuleStats | PlainMessage<ModuleStats> | undefined, b: ModuleStats | PlainMessage<ModuleStats> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.ExternalCallMetric
+ */
+export declare class ExternalCallMetric extends Message<ExternalCallMetric> {
+    /**
+     * @generated from field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from field: uint64 count = 2;
+     */
+    count: bigint;
+    /**
+     * @generated from field: uint64 time_ms = 3;
+     */
+    timeMs: bigint;
+    constructor(data?: PartialMessage<ExternalCallMetric>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.ExternalCallMetric";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExternalCallMetric;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExternalCallMetric;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExternalCallMetric;
+    static equals(a: ExternalCallMetric | PlainMessage<ExternalCallMetric> | undefined, b: ExternalCallMetric | PlainMessage<ExternalCallMetric> | undefined): boolean;
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.StoreDelta
+ */
+export declare class StoreDelta extends Message<StoreDelta> {
+    /**
+     * @generated from field: sf.substreams.rpc.v2.StoreDelta.Operation operation = 1;
+     */
+    operation: StoreDelta_Operation;
+    /**
+     * @generated from field: uint64 ordinal = 2;
+     */
+    ordinal: bigint;
+    /**
+     * @generated from field: string key = 3;
+     */
+    key: string;
+    /**
+     * @generated from field: bytes old_value = 4;
+     */
+    oldValue: Uint8Array;
+    /**
+     * @generated from field: bytes new_value = 5;
+     */
+    newValue: Uint8Array;
+    constructor(data?: PartialMessage<StoreDelta>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.StoreDelta";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StoreDelta;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StoreDelta;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StoreDelta;
+    static equals(a: StoreDelta | PlainMessage<StoreDelta> | undefined, b: StoreDelta | PlainMessage<StoreDelta> | undefined): boolean;
+}
+/**
+ * @generated from enum sf.substreams.rpc.v2.StoreDelta.Operation
+ */
+export declare enum StoreDelta_Operation {
+    /**
+     * @generated from enum value: UNSET = 0;
+     */
+    UNSET = 0,
+    /**
+     * @generated from enum value: CREATE = 1;
+     */
+    CREATE = 1,
+    /**
+     * @generated from enum value: UPDATE = 2;
+     */
+    UPDATE = 2,
+    /**
+     * @generated from enum value: DELETE = 3;
+     */
+    DELETE = 3
+}
+/**
+ * @generated from message sf.substreams.rpc.v2.BlockRange
+ */
+export declare class BlockRange extends Message<BlockRange> {
+    /**
+     * @generated from field: uint64 start_block = 2;
+     */
+    startBlock: bigint;
+    /**
+     * @generated from field: uint64 end_block = 3;
+     */
+    endBlock: bigint;
+    constructor(data?: PartialMessage<BlockRange>);
+    static readonly runtime: typeof proto3;
+    static readonly typeName = "sf.substreams.rpc.v2.BlockRange";
+    static readonly fields: FieldList;
+    static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlockRange;
+    static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlockRange;
+    static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlockRange;
+    static equals(a: BlockRange | PlainMessage<BlockRange> | undefined, b: BlockRange | PlainMessage<BlockRange> | undefined): boolean;
+}
+//# sourceMappingURL=service_pb.d.ts.map

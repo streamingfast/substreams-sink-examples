@@ -1,0 +1,34 @@
+export function assertAcyclic(nodes) {
+  for (const [node, adjacents] of nodes) {
+    const visited = new Set([node]);
+    const stack = new Set([node]);
+    for (const adjacent of adjacents) {
+      if (isCyclic(nodes, adjacent, visited, stack)) {
+        const path = Array.from(stack).map(node => node.name);
+        throw new Error(`Cyclic dependency ${path.join(" -> ")}`);
+      }
+    }
+  }
+}
+function isCyclic(nodes, node, visited, stack) {
+  if (stack.has(node)) {
+    return true;
+  }
+  if (visited.has(node)) {
+    return false;
+  }
+  visited.add(node);
+  stack.add(node);
+  const adjacents = nodes.get(node);
+  if (adjacents === undefined) {
+    throw new Error(`Module ${node.name} not found in graph`);
+  }
+  for (const adjacent of adjacents) {
+    if (isCyclic(nodes, adjacent, visited, stack)) {
+      return true;
+    }
+  }
+  stack.delete(node);
+  return false;
+}
+//# sourceMappingURL=assert-acyclic.js.map

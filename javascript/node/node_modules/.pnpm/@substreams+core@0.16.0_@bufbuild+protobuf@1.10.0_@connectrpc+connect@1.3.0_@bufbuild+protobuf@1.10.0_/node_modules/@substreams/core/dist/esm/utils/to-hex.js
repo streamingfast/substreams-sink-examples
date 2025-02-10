@@ -1,0 +1,4 @@
+export function toHex(array) {
+  return Array.from(array, value => value.toString(16).padStart(2, "0")).join("");
+}
+//# sourceMappingURL=to-hex.js.map

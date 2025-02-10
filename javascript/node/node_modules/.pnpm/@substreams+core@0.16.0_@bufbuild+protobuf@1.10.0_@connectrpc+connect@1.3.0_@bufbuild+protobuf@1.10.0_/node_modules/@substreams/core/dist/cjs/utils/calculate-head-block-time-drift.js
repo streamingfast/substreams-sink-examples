@@ -1,0 +1,12 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.calculateHeadBlockTimeDrift = calculateHeadBlockTimeDrift;
+function calculateHeadBlockTimeDrift(timestamp) {
+  const seconds = timestamp.getSeconds();
+  const current = Math.floor(new Date().valueOf() / 1000);
+  return current - seconds;
+}
+//# sourceMappingURL=calculate-head-block-time-drift.js.map

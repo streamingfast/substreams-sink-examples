@@ -15,7 +15,7 @@ const TOKEN = "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzUyMTg3MDAs
 const ENDPOINT = "https://mainnet.sol.streamingfast.io:443"
 const SPKG = "https://spkg.io/streamingfast/solana_common-v0.3.3.spkg"
 const MODULE = "transactions_by_programid_and_account_without_votes"
-const START_BLOCK = '318876956'
+const START_BLOCK = '319813683'
 const STOP_BLOCK = '+10'
 
 /*
@@ -25,7 +25,7 @@ const STOP_BLOCK = '+10'
 */
 const main = async () => {
     const pkg = await fetchPackage();
-    applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:3EsvvyqporKr5DVpzWsdYCphpXqXnQBMQLGNwSH5MmRE"], pkg.modules?.modules);
+    applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:FBxBr8ySAUVK8rnEyfDsNZ3n48TWEWXWytm7BJ6XFixc"], pkg.modules?.modules);
     const registry = createRegistry(pkg);
 
     const transport = createConnectTransport({

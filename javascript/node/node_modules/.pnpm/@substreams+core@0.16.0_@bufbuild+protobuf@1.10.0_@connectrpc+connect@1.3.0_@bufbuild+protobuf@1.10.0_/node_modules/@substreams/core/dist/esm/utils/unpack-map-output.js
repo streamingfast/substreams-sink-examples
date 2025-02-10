@@ -1,0 +1,14 @@
+export function unpackMapOutput(response, registry) {
+  if (response.message.case === "blockScopedData") {
+    const output = response.message.value.output?.mapOutput;
+    if (output !== undefined) {
+      const message = output.unpack(registry);
+      if (message === undefined) {
+        throw new Error(`Failed to unpack output of type ${output.typeUrl}`);
+      }
+      return message;
+    }
+  }
+  return undefined;
+}
+//# sourceMappingURL=unpack-map-output.js.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"is-map-module.d.ts","sourceRoot":"","sources":["../../../src/utils/is-map-module.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,aAAa,CAAC;AAE1C,MAAM,MAAM,SAAS,GAAG,MAAM,GAAG;IAAE,IAAI,EAAE;QAAE,IAAI,EAAE,SAAS,CAAA;KAAE,CAAA;CAAE,CAAC;AAE/D,wBAAgB,WAAW,CAAC,MAAM,EAAE,MAAM,GAAG,MAAM,IAAI,SAAS,CAE/D"}

@@ -1,0 +1,46 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.mergeProgressRanges = mergeProgressRanges;
+exports.mergeSortedProgressRanges = mergeSortedProgressRanges;
+/**
+ * Merges progress ranges.
+ *
+ * @param ranges The ranges to merge.
+ * @returns The merged ranges.
+ */
+function mergeProgressRanges(ranges) {
+  const sorted = ranges.slice().sort(([a], [b]) => {
+    return a === b ? 0 : a < b ? -1 : 1;
+  });
+  return mergeSortedProgressRanges(sorted);
+}
+/**
+ * Merges progress ranges that are already sorted.
+ *
+ * @param ranges The ranges to merge.
+ * @returns The merged ranges.
+ */
+function mergeSortedProgressRanges(ranges) {
+  let [previous] = ranges;
+  if (previous === undefined) {
+    return [];
+  }
+  // Ensure we are not modifying the original array.
+  previous = [previous[0], previous[1]];
+  const result = [previous];
+  for (const next of ranges) {
+    if (next[0] > previous[1] + BigInt(1)) {
+      previous = [next[0], next[1]];
+      result.push(previous);
+      continue;
+    }
+    if (next[1] > previous[1]) {
+      previous[1] = next[1];
+    }
+  }
+  return result;
+}
+//# sourceMappingURL=merge-progress-ranges.js.map
