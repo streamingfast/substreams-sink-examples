@@ -3,6 +3,7 @@ import {
     streamBlocks,
     createAuthInterceptor,
     createRegistry,
+    applyParams,
     fetchSubstream
 } from '@substreams/core';
 import { createConnectTransport } from "@connectrpc/connect-node";
@@ -10,12 +11,12 @@ import { getCursor } from "./cursor.js";
 import { isErrorRetryable } from "./error.js";
 import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 
-const TOKEN = process.env.SUBSTREAMS_API_TOKEN
-const ENDPOINT = "https://mainnet.eth.streamingfast.io"
-const SPKG = "https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg"
-const MODULE = "map_block_meta"
-const START_BLOCK = '100000'
-const STOP_BLOCK = '+10000'
+const TOKEN = "eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzUyMTg3MDAsImp0aSI6IjNkZDY3ODJhLWZhMTEtNGZkOS1iZGM3LTJhZDFjZTMyZGFiZCIsImlhdCI6MTczOTIxODcwMCwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiIwaGF2bzFiYTZkMDM0YWMxYmU5NmQiLCJ2IjoxLCJha2kiOiI0NjRlYWYxNjU0MTU4M2ZhNTNlZDg5NjAyNjdlYTc2NDQ1ZjBkYTUzNGE1ZWFiODMxMzkwYjYxMjJmNDY2MjRiIiwidWlkIjoiMGhhdm8xYmE2ZDAzNGFjMWJlOTZkIn0.aX3zE0D-YxAQTqT7Vo7vBKATOV7SB-gf0Fy5WQ80efw_o4RFLJIneL0glTSB-eM32NvlXrsraorUABB01K7Veg"
+const ENDPOINT = "https://mainnet.sol.streamingfast.io:443"
+const SPKG = "https://spkg.io/streamingfast/solana_common-v0.3.3.spkg"
+const MODULE = "transactions_by_programid_and_account_without_votes"
+const START_BLOCK = '318876956'
+const STOP_BLOCK = '+10'
 
 /*
     Entrypoint of the application.
@@ -23,7 +24,8 @@ const STOP_BLOCK = '+10000'
     The application MUST handle disconnections and commit the provided cursor to avoid missing information.
 */
 const main = async () => {
-    const pkg = await fetchPackage()
+    const pkg = await fetchPackage();
+    applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:3EsvvyqporKr5DVpzWsdYCphpXqXnQBMQLGNwSH5MmRE"], pkg.modules?.modules);
     const registry = createRegistry(pkg);
 
     const transport = createConnectTransport({
