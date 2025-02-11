@@ -17,7 +17,8 @@ const handleBlockScopedDataMessage = async (response, registry) => {
 
         // Cursor writing MUST happen after you have successfully processed the message. Otherwise, you risk "skipping" data.
         const outputAsJson = response.output.toJson({typeRegistry: registry});
-        console.log(outputAsJson)
+        const blockValue = response.clock.number;
+        console.log("@", blockValue.toString(), ": ",  outputAsJson);
 
         await writeCursor(cursor);
     }
