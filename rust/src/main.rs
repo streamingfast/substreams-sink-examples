@@ -11,6 +11,7 @@ use prost::Message;
 use std::{env, process::exit, sync::Arc};
 use substreams::SubstreamsEndpoint;
 use substreams_stream::{BlockResponse, SubstreamsStream};
+use crate::pb::sf::substreams::v1::module::input::{Input, Params};
 
 mod pb;
 mod substreams;
@@ -26,12 +27,14 @@ const REGISTRY_URL: &str = "https://spkg.io";
 async fn main() -> Result<(), Error> {
     let args = env::args();
     if args.len() < 4 || args.len() > 5 {
-        println!("usage: <endpoint> <spkg> <module> [<start>:<stop>]");
+        println!("usage: <endpoint> <spkg> <module>:<query_string> [<start>:<stop>]");
         println!();
         println!("<spkg> can either be the full spkg.io link or `spkg_package@version`");
         println!();
+        println!("(Optional) <query_string> is the query string in blockFilter");
+        println!();
         println!("Examples");
-        println!(" cargo run -- mainnet.injective.streamingfast.io:443 injective-common@v0.2.3 all_events 1:10");
+        println!(" cargo run -- mainnet.injective.streamingfast.io:443 injective-common@v0.2.3 filtered_events:(type:message && attr:action) 1:10");
         println!();
         println!("The environment variable SUBSTREAMS_API_TOKEN must be set also");
         println!("and should contain a valid Substream API token.");
@@ -40,7 +43,7 @@ async fn main() -> Result<(), Error> {
 
     let mut endpoint_url = env::args().nth(1).unwrap();
     let package_file = env::args().nth(2).unwrap();
-    let module_name = env::args().nth(3).unwrap();
+    let (module_name, filter_query) = read_module_and_filter(env::args().nth(3).unwrap());
 
     if !endpoint_url.starts_with("http") {
         endpoint_url = format!("{}://{}", "https", endpoint_url);
@@ -52,7 +55,7 @@ async fn main() -> Result<(), Error> {
         token = Some(token_env);
     }
 
-    let package = read_package(&package_file).await?;
+    let package = read_package(&package_file, &module_name, filter_query).await?;
     let block_range = read_block_range(&package, &module_name)?;
     let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, token).await?);
 
@@ -205,27 +208,60 @@ fn read_block_range(pkg: &Package, module_name: &str) -> Result<(i64, u64), anyh
     return Ok((start, stop));
 }
 
-async fn read_package(input: &str) -> Result<Package, anyhow::Error> {
+async fn read_package(
+    input: &str, 
+    module_name: &str, 
+    filter_query: Option<String>,
+) -> Result<Package, Error> {
     let mut mutable_input = input.to_string();
 
     let val = parse_standard_package_and_version(input);
     if val.is_ok() {
-        let package_and_version = val.unwrap();
+        let package_and_version = val?;
         mutable_input = format!(
             "{}/v1/packages/{}/{}",
             REGISTRY_URL, package_and_version.0, package_and_version.1
         );
     }
 
-    if mutable_input.starts_with("http") {
-        return read_http_package(&mutable_input).await;
-    }
+    let mut package = if mutable_input.starts_with("http") {
+        read_http_package(&mutable_input).await
+    } else {
+        // Assume it's a local file
+        let content = std::fs::read(&mutable_input)
+            .context(format_err!("read package from file '{}'", mutable_input))?;
+        Package::decode(content.as_ref()).context("decode command")
+    }?;
+    
+    if let Some(filter_query) = filter_query {
+        println!("Adding block filter '{}'", filter_query);
 
-    // Assume it's a local file
-    let content = std::fs::read(&mutable_input)
-        .context(format_err!("read package from file '{}'", mutable_input))?;
-    Package::decode(content.as_ref()).context("decode command")
+        // Find the module by name and apply the block filter
+        if let Some(modules) = &mut package.modules {
+            if let Some(module) = modules.modules.iter_mut().find(|m| m.name == module_name) {
+                module.inputs[0].input = Some(Input::Params(Params {
+                    value: filter_query.to_string(),
+                }));
+            }
+        }
+        Ok(package)
+    } else {
+        Ok(package)
+    }
 }
+
+fn read_module_and_filter(third_arg: String) -> (String, Option<String>) {
+    if third_arg.contains(":") {
+        // Example: filtered_events:"(type:transfer)"
+        (
+            third_arg.split_once(":").unwrap().0.to_string(),
+            Some(third_arg.split_once(":").unwrap().1.to_string()),
+        )
+    } else {
+        (third_arg, None)
+    }
+}
+
 async fn read_http_package(input: &str) -> Result<Package, anyhow::Error> {
     let body = reqwest::get(input).await?.bytes().await?;
 
