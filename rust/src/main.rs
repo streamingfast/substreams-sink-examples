@@ -250,15 +250,11 @@ async fn read_package(
     }
 }
 
-fn read_module_and_filter(third_arg: String) -> (String, Option<String>) {
-    if third_arg.contains(":") {
-        // Example: filtered_events:"(type:transfer)"
-        (
-            third_arg.split_once(":").unwrap().0.to_string(),
-            Some(third_arg.split_once(":").unwrap().1.to_string()),
-        )
-    } else {
-        (third_arg, None)
+fn read_module_and_filter(input: String) -> (String, Option<String>) {
+    // Example: filtered_events:"(type:transfer)"
+    match input.split_once(":") {
+        Some((key, value)) => (key.to_string(), Some(value.to_string())),
+        None => (input, None),
     }
 }
 
