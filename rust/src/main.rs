@@ -308,3 +308,48 @@ fn parse_standard_package_and_version(input: &str) -> Result<(String, String), E
 fn is_valid_version(version: &str) -> bool {
     Version::parse(version).is_ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_module_and_filter_with_valid_module_and_filter() {
+        let input = "filtered_events:(type:transfer)";
+        let (module, filter) = read_module_and_filter(input.to_string());
+        assert_eq!(module, "filtered_events");
+        assert_eq!(filter, Some("(type:transfer)".to_string()));
+    }
+
+    #[test]
+    fn read_module_and_filter_with_only_module() {
+        let input = "filtered_events";
+        let (module, filter) = read_module_and_filter(input.to_string());
+        assert_eq!(module, "filtered_events");
+        assert_eq!(filter, None);
+    }
+
+    #[test]
+    fn read_module_and_filter_with_empty_string() {
+        let input = "";
+        let (module, filter) = read_module_and_filter(input.to_string());
+        assert_eq!(module, "");
+        assert_eq!(filter, None);
+    }
+
+    #[test]
+    fn read_module_and_filter_with_colon_but_no_filter() {
+        let input = "filtered_events:";
+        let (module, filter) = read_module_and_filter(input.to_string());
+        assert_eq!(module, "filtered_events");
+        assert_eq!(filter, Some("".to_string()));
+    }
+
+    #[test]
+    fn read_module_and_filter_with_colon_only() {
+        let input = ":";
+        let (module, filter) = read_module_and_filter(input.to_string());
+        assert_eq!(module, "");
+        assert_eq!(filter, Some("".to_string()));
+    }
+}
