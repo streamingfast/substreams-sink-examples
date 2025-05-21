@@ -1,4 +1,4 @@
-use anyhow::{format_err, Context, Error};
+use anyhow::{anyhow, format_err, Context, Error};
 use chrono::DateTime;
 use futures03::StreamExt;
 use lazy_static::lazy_static;
@@ -7,11 +7,11 @@ use pb::sf::substreams::v1::Package;
 use regex::Regex;
 use semver::Version;
 
+use crate::pb::sf::substreams::v1::module::input::{Input, Params};
 use prost::Message;
 use std::{env, process::exit, sync::Arc};
 use substreams::SubstreamsEndpoint;
 use substreams_stream::{BlockResponse, SubstreamsStream};
-use crate::pb::sf::substreams::v1::module::input::{Input, Params};
 
 mod pb;
 mod substreams;
@@ -25,38 +25,61 @@ const REGISTRY_URL: &str = "https://spkg.io";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let args = env::args();
-    if args.len() < 4 || args.len() > 5 {
-        println!("usage: <endpoint> <spkg> <module>:<query_string> [<start>:<stop>]");
+    // Reversed as we are going to pop each arguments later
+    let mut args: Vec<_> = env::args()
+        .skip(1)
+        .filter(|arg| !arg.starts_with("--"))
+        .rev()
+        .collect();
+
+    if args.len() <= 2 || args.len() >= 5 {
+        println!("usage: <endpoint> <spkg> <module> [<start>:<stop>] [--params=<params>]");
         println!();
         println!("<spkg> can either be the full spkg.io link or `spkg_package@version`");
         println!();
-        println!("(Optional) <query_string> is the query string in blockFilter");
+        println!("(Optional) Flag <params> is a comma separated list of module name to filter expression");
+        println!("that should be passed to the module. Each entry should be in the form of");
+        println!("<module_name>:<filter_expr>, like map_block:(type:transfer). Multiple parameters can be");
+        println!("passed by separating them with a comma --params=\"module_one:(type:transfer && attr:action),module_two:(type:transfer)\".");
         println!();
         println!("Examples");
-        println!(" cargo run -- mainnet.injective.streamingfast.io:443 injective-common@v0.2.3 filtered_events:(type:message && attr:action) 1:10");
+        println!(" # From genesis and and onwards forever");
+        println!(" cargo run -- mainnet.eth.streamingfast.io:443 common@v0.1.0 map_clocks 0:");
+        println!("");
+        println!(" # From current head block (-1) and onwards forever");
+        println!(" cargo run -- mainnet.eth.streamingfast.io:443 common@v0.1.0 map_clocks -1:");
+        println!("");
+        println!(" # With module parameters for filtering");
+        println!(" cargo run -- mainnet.eth.streamingfast.io:443 ethereum-common@v0.3.1 filtered_transactions --params=\"filtered_transactions:(call_method:0xa9059cbb)\" 21000000:+1");
         println!();
         println!("The environment variable SUBSTREAMS_API_TOKEN must be set also");
         println!("and should contain a valid Substream API token.");
         exit(1);
     }
 
-    let mut endpoint_url = env::args().nth(1).unwrap();
-    let package_file = env::args().nth(2).unwrap();
-    let (module_name, filter_query) = read_module_and_filter(env::args().nth(3).unwrap());
+    let params = env::args()
+        .find(|arg| arg.starts_with("--params"))
+        .map(|input| read_params_flag(&input))
+        .unwrap_or_else(|| Ok(Vec::new()))?;
+
+    let mut endpoint_url = args.pop().unwrap();
+    let package_file = args.pop().unwrap();
+    let module_name = args.pop().unwrap();
+    let block_range = args.pop();
 
     if !endpoint_url.starts_with("http") {
-        endpoint_url = format!("{}://{}", "https", endpoint_url);
+        endpoint_url = format!("{}://{}", "https", &endpoint_url);
     }
 
     let token_env = env::var("SUBSTREAMS_API_TOKEN").unwrap_or("".to_string());
+
     let mut token: Option<String> = None;
     if token_env.len() > 0 {
         token = Some(token_env);
     }
 
-    let package = read_package(&package_file, &module_name, filter_query).await?;
-    let block_range = read_block_range(&package, &module_name)?;
+    let package = read_package(&package_file, params).await?;
+    let block_range = read_block_range(&package, &module_name, block_range)?;
     let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, token).await?);
 
     let cursor: Option<String> = load_persisted_cursor()?;
@@ -154,7 +177,11 @@ fn load_persisted_cursor() -> Result<Option<String>, anyhow::Error> {
     Ok(None)
 }
 
-fn read_block_range(pkg: &Package, module_name: &str) -> Result<(i64, u64), anyhow::Error> {
+fn read_block_range(
+    pkg: &Package,
+    module_name: &str,
+    block_range: Option<String>,
+) -> Result<(i64, u64), anyhow::Error> {
     let module = pkg
         .modules
         .as_ref()
@@ -165,7 +192,7 @@ fn read_block_range(pkg: &Package, module_name: &str) -> Result<(i64, u64), anyh
         .ok_or_else(|| format_err!("module '{}' not found in package", module_name))?;
 
     let mut input: String = "".to_string();
-    if let Some(range) = env::args().nth(4) {
+    if let Some(range) = block_range {
         input = range;
     };
 
@@ -208,11 +235,7 @@ fn read_block_range(pkg: &Package, module_name: &str) -> Result<(i64, u64), anyh
     return Ok((start, stop));
 }
 
-async fn read_package(
-    input: &str, 
-    module_name: &str, 
-    filter_query: Option<String>,
-) -> Result<Package, Error> {
+async fn read_package(input: &str, params: Vec<Param>) -> Result<Package, Error> {
     let mut mutable_input = input.to_string();
 
     let val = parse_standard_package_and_version(input);
@@ -232,16 +255,20 @@ async fn read_package(
             .context(format_err!("read package from file '{}'", mutable_input))?;
         Package::decode(content.as_ref()).context("decode command")
     }?;
-    
-    if let Some(filter_query) = filter_query {
-        println!("Adding block filter '{}'", filter_query);
 
+    if params.len() > 0 {
         // Find the module by name and apply the block filter
         if let Some(modules) = &mut package.modules {
-            if let Some(module) = modules.modules.iter_mut().find(|m| m.name == module_name) {
-                module.inputs[0].input = Some(Input::Params(Params {
-                    value: filter_query.to_string(),
-                }));
+            for param in params {
+                if let Some(module) = modules
+                    .modules
+                    .iter_mut()
+                    .find(|m| m.name == param.module_name)
+                {
+                    module.inputs[0].input = Some(Input::Params(Params {
+                        value: param.expression,
+                    }));
+                }
             }
         }
         Ok(package)
@@ -250,12 +277,40 @@ async fn read_package(
     }
 }
 
-fn read_module_and_filter(input: String) -> (String, Option<String>) {
-    // Example: filtered_events:"(type:transfer)"
-    match input.split_once(":") {
-        Some((key, value)) => (key.to_string(), Some(value.to_string())),
-        None => (input, None),
+/// Reads the module name and filter from the input string.
+///
+/// Example input would be `filtered_events:(type:transfer)`
+fn read_params_flag(input: &str) -> anyhow::Result<Vec<Param>> {
+    let mut params = vec![];
+
+    let value = input
+        .trim_start_matches("--params")
+        .trim()
+        .trim_start_matches("=")
+        .trim();
+    if value.is_empty() {
+        return Err(anyhow!(
+            "wrong --params input value '{}': empty string",
+            value
+        ));
     }
+
+    for param in value.split(",") {
+        match param.split_once(":") {
+            Some((module_name, expression)) => params.push(Param {
+                module_name: module_name.trim().to_string(),
+                expression: expression.trim().to_string(),
+            }),
+            None => {
+                return Err(anyhow!(
+                    "wrong --params value for '{}': missing ':' delimiter",
+                    param
+                ))
+            }
+        }
+    }
+
+    Ok(params)
 }
 
 async fn read_http_package(input: &str) -> Result<Package, anyhow::Error> {
@@ -305,47 +360,77 @@ fn is_valid_version(version: &str) -> bool {
     Version::parse(version).is_ok()
 }
 
+struct Param {
+    pub module_name: String,
+    pub expression: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn read_module_and_filter_with_valid_module_and_filter() {
-        let input = "filtered_events:(type:transfer)";
-        let (module, filter) = read_module_and_filter(input.to_string());
-        assert_eq!(module, "filtered_events");
-        assert_eq!(filter, Some("(type:transfer)".to_string()));
+        let params =
+            read_params_flag("--params= filtered_events:(type:transfer)").expect("no error");
+
+        assert_eq!(params.len(), 1);
+        assert_eq!(params[0].module_name, "filtered_events");
+        assert_eq!(params[0].expression, "(type:transfer)");
+    }
+
+    #[test]
+    fn read_module_and_filter_with_valid_multiples() {
+        let params = read_params_flag("--params= first:(type:transfer), second:(type:action)")
+            .expect("no error");
+
+        assert_eq!(params.len(), 2);
+
+        assert_eq!(params[0].module_name, "first");
+        assert_eq!(params[0].expression, "(type:transfer)");
+
+        assert_eq!(params[1].module_name, "second");
+        assert_eq!(params[1].expression, "(type:action)");
     }
 
     #[test]
     fn read_module_and_filter_with_only_module() {
-        let input = "filtered_events";
-        let (module, filter) = read_module_and_filter(input.to_string());
-        assert_eq!(module, "filtered_events");
-        assert_eq!(filter, None);
+        let error = read_params_flag("--params=filtered_events")
+            .err()
+            .expect("error expected")
+            .to_string();
+
+        assert_eq!(
+            error,
+            "wrong --params value for 'filtered_events': missing ':' delimiter"
+        );
     }
 
     #[test]
     fn read_module_and_filter_with_empty_string() {
-        let input = "";
-        let (module, filter) = read_module_and_filter(input.to_string());
-        assert_eq!(module, "");
-        assert_eq!(filter, None);
+        let error = read_params_flag("")
+            .err()
+            .expect("error expected")
+            .to_string();
+
+        assert_eq!(error, "wrong --params input value '': empty string");
     }
 
     #[test]
     fn read_module_and_filter_with_colon_but_no_filter() {
-        let input = "filtered_events:";
-        let (module, filter) = read_module_and_filter(input.to_string());
-        assert_eq!(module, "filtered_events");
-        assert_eq!(filter, Some("".to_string()));
+        let params = read_params_flag("--params=filtered_events:").expect("no error");
+
+        assert_eq!(params.len(), 1);
+        assert_eq!(params[0].module_name, "filtered_events");
+        assert_eq!(params[0].expression, "");
     }
 
     #[test]
     fn read_module_and_filter_with_colon_only() {
-        let input = ":";
-        let (module, filter) = read_module_and_filter(input.to_string());
-        assert_eq!(module, "");
-        assert_eq!(filter, Some("".to_string()));
+        let params = read_params_flag("--params=:").expect("no error");
+
+        assert_eq!(params.len(), 1);
+        assert_eq!(params[0].module_name, "");
+        assert_eq!(params[0].expression, "");
     }
 }
