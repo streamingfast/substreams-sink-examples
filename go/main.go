@@ -93,7 +93,7 @@ func handleBlockScopedData(ctx context.Context, data *pbsubstreamsrpc.BlockScope
 	fmt.Printf("Block #%d (%s) data received with %d changes\n", data.Clock.Number, data.Clock.Id, len(changes.TableChanges))
 
 	// Once you have processed the block, you **must** persist the cursor, persistence
-	// can take differnet form. For example, you can save it to a file, or to a database.
+	// can take different form. For example, you can save it to a file, or to a database.
 	// You can simply use `os.WriteFile("cursor.txt", []byte(cursor.String()), 0644)` to
 	// save it to a file.
 	_ = cursor
