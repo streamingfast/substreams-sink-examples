@@ -9,9 +9,9 @@ import (
 	"github.com/streamingfast/cli"
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/logging"
-	sink "github.com/streamingfast/substreams-sink"
 	pbchanges "github.com/streamingfast/substreams-sink-database-changes/pb/sf/substreams/sink/database/v1"
 	pbsubstreamsrpc "github.com/streamingfast/substreams/pb/sf/substreams/rpc/v2"
+	"github.com/streamingfast/substreams/sink"
 )
 
 var expectedOutputModuleType = string(new(pbchanges.DatabaseChanges).ProtoReflect().Descriptor().FullName())
@@ -26,9 +26,9 @@ func main() {
 		"Simple Go sinker sinking data to your terminal",
 
 		Command(sinkRunE,
-			"sink <endpoint> <manifest> [<output_module>]",
+			"sink [<manifest> [<output_module>]]",
 			"Run the sinker code",
-			RangeArgs(2, 3),
+			RangeArgs(0, 2),
 			Flags(func(flags *pflag.FlagSet) {
 				sink.AddFlagsToSet(flags)
 			}),
@@ -39,14 +39,14 @@ func main() {
 }
 
 func sinkRunE(cmd *cobra.Command, args []string) error {
-	endpoint := args[0]
-	manifestPath := args[1]
-
-	// Find the output module in the manifest sink.moduleName configuration. If you have no
-	// such configuration, you can change the value below and set the module name explicitly.
+	manifestPath := "substreams.yaml" // default
 	outputModuleName := sink.InferOutputModuleFromPackage
-	if len(args) == 3 {
-		outputModuleName = args[2]
+
+	if len(args) > 0 {
+		manifestPath = args[0]
+	}
+	if len(args) > 1 {
+		outputModuleName = args[1]
 	}
 
 	sinker, err := sink.NewFromViper(
@@ -57,11 +57,9 @@ func sinkRunE(cmd *cobra.Command, args []string) error {
 		// If your Protobuf is defined in your Substreams manifest, you can use `substream protogen`
 		// while being in the same folder that contain `buf.gen.yaml` file in the example folder.
 		expectedOutputModuleType,
-		endpoint,
 		manifestPath,
 		outputModuleName,
-		// This is the block range, in our case defined as Substreams module's start block and up forever
-		":",
+		"sink-example/1.0.0", // userAgent
 		zlog,
 		tracer,
 	)
