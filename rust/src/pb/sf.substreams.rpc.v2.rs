@@ -43,11 +43,31 @@ pub struct Request {
     pub debug_initial_store_snapshot_for_modules: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(bool, tag="11")]
     pub noop_mode: bool,
+    /// If set, the engine will reject a request if the number of blocks to process (including preparing the stores) is above this limit.
+    /// Useful as a safeguard for managing costs
+    #[prost(uint64, tag="12")]
+    pub limit_processed_blocks: u64,
+    /// Available only in developer mode
+    /// If set, the server will only send the output of these modules.
+    /// If unset, all the outputs are sent.
+    /// This allows the user to reduce the payload in dev mode, while still getting some extra debugging information
+    #[prost(string, repeated, tag="13")]
+    pub dev_output_modules: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Progress_messages_interval_ms is the interval between progress messages, in milliseconds (minimum: 500, default: start at 500ms and ramp up to 5000ms within 1min)
+    #[prost(uint64, tag="14")]
+    pub progress_messages_interval_ms: u64,
+    /// If true, partial blocks are also sent on the stream
+    #[prost(bool, tag="15")]
+    pub include_partial_blocks: bool,
+    /// If true, only partial blocks are sent, no 'block-scoped-data' or cursor.
+    /// This value supersedes include_partial_blocks
+    #[prost(bool, tag="16")]
+    pub partial_blocks_only: bool,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Response {
-    #[prost(oneof="response::Message", tags="1, 2, 3, 4, 5, 10, 11")]
+    #[prost(oneof="response::Message", tags="1, 2, 3, 4, 5, 10, 11, 12")]
     pub message: ::core::option::Option<response::Message>,
 }
 /// Nested message and enum types in `Response`.
@@ -73,6 +93,8 @@ pub mod response {
         /// Available only in developer mode, and only if `debug_initial_store_snapshot_for_modules` is set.
         #[prost(message, tag="11")]
         DebugSnapshotComplete(super::InitialSnapshotComplete),
+        #[prost(message, tag="12")]
+        PartialBlockData(super::PartialBlockData),
     }
 }
 /// BlockUndoSignal informs you that every bit of data
@@ -102,6 +124,20 @@ pub struct BlockScopedData {
     pub debug_map_outputs: ::prost::alloc::vec::Vec<MapModuleOutput>,
     #[prost(message, repeated, tag="11")]
     pub debug_store_outputs: ::prost::alloc::vec::Vec<StoreModuleOutput>,
+    /// Signed attestation, enabling economic security as per GIP-0083. Signatures are
+    /// done using the key specified by SessionInit::attestation_public_key.
+    #[prost(string, tag="12")]
+    pub attestation: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PartialBlockData {
+    #[prost(message, optional, tag="1")]
+    pub output: ::core::option::Option<MapModuleOutput>,
+    #[prost(message, optional, tag="2")]
+    pub clock: ::core::option::Option<super::super::v1::Clock>,
+    #[prost(uint32, tag="3")]
+    pub partial_index: u32,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -114,6 +150,26 @@ pub struct SessionInit {
     pub linear_handoff_block: u64,
     #[prost(uint64, tag="4")]
     pub max_parallel_workers: u64,
+    /// Operator's attestation public_key or address, enabling economic security as per GIP-0083.
+    #[prost(string, tag="5")]
+    pub attestation_public_key: ::prost::alloc::string::String,
+    #[prost(uint64, tag="6")]
+    pub chain_head: u64,
+    /// theoretical number of blocks that need to be processed __before any data is sent__, without consideration for current cached states
+    /// Because of parallel work, 1000 blocks with 2 "store stages" will result in 2000 blocks to process
+    #[prost(uint64, tag="7")]
+    pub blocks_to_process_before_start_block: u64,
+    /// same as `blocks_to_process_before_start_block`, but excluding the current cached states
+    #[prost(uint64, tag="8")]
+    pub effective_blocks_to_process_before_start_block: u64,
+    /// theoretical number of blocks that will be processed inside the requested range, without consideration for current cached outputs
+    /// if the range is open-ended, it is calculated up to the current chain head
+    /// in production-mode, 1000 blocks with 3 "stages" will result in 3000 blocks to process
+    #[prost(uint64, tag="9")]
+    pub blocks_to_process_after_start_block: u64,
+    /// same as `blocks_to_process_after_start_block`, but excluding the current cached outputs
+    #[prost(uint64, tag="10")]
+    pub effective_blocks_to_process_after_start_block: u64,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -185,6 +241,8 @@ pub struct ModulesProgress {
     pub stages: ::prost::alloc::vec::Vec<Stage>,
     #[prost(message, optional, tag="5")]
     pub processed_bytes: ::core::option::Option<ProcessedBytes>,
+    #[prost(uint64, tag="6")]
+    pub processed_blocks: u64,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -218,7 +276,7 @@ pub struct Job {
     #[prost(uint64, tag="3")]
     pub stop_block: u64,
     #[prost(uint64, tag="4")]
-    pub processed_blocks: u64,
+    pub progress_blocks: u64,
     #[prost(uint64, tag="5")]
     pub duration_ms: u64,
 }

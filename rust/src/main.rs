@@ -87,7 +87,7 @@ async fn main() -> Result<(), Error> {
     let mut stream = SubstreamsStream::new(
         endpoint,
         cursor,
-        package.modules,
+        Some(package),
         module_name.to_string(),
         block_range.0,
         block_range.1,

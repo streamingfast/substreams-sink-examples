@@ -11,9 +11,10 @@ use tokio::time::sleep;
 use tokio_retry::strategy::ExponentialBackoff;
 
 use crate::pb::sf::substreams::rpc::v2::{
-    response::Message, BlockScopedData, BlockUndoSignal, Request, Response,
+    response::Message, BlockScopedData, BlockUndoSignal, Response,
 };
-use crate::pb::sf::substreams::v1::Modules;
+use crate::pb::sf::substreams::rpc::v3::Request;
+use crate::pb::sf::substreams::v1::Package;
 
 use crate::substreams::SubstreamsEndpoint;
 
@@ -30,7 +31,7 @@ impl SubstreamsStream {
     pub fn new(
         endpoint: Arc<SubstreamsEndpoint>,
         cursor: Option<String>,
-        modules: Option<Modules>,
+        package: Option<Package>,
         output_module_name: String,
         start_block: i64,
         end_block: u64,
@@ -39,7 +40,7 @@ impl SubstreamsStream {
             stream: Box::pin(stream_blocks(
                 endpoint,
                 cursor,
-                modules,
+                package,
                 output_module_name,
                 start_block,
                 end_block,
@@ -52,7 +53,7 @@ impl SubstreamsStream {
 fn stream_blocks(
     endpoint: Arc<SubstreamsEndpoint>,
     cursor: Option<String>,
-    modules: Option<Modules>,
+    package: Option<Package>,
     output_module_name: String,
     start_block_num: i64,
     stop_block_num: u64,
@@ -75,7 +76,9 @@ fn stream_blocks(
                 start_cursor: latest_cursor.clone(),
                 stop_block_num,
                 final_blocks_only: false,
-                modules: modules.clone(),
+                package: package.clone(),
+                params: Default::default(),
+                network: String::new(),
                 output_module: output_module_name.clone(),
                 // There is usually no good reason for you to consume the stream development mode (so switching `true`
                 // to `false`). If you do switch it, be aware that more than one output module will be send back to you,
@@ -83,6 +86,11 @@ fn stream_blocks(
                 // module.
                 production_mode: true,
                 debug_initial_store_snapshot_for_modules: vec![],
+                dev_output_modules: vec![],
+                limit_processed_blocks: u64::MAX,
+                progress_messages_interval_ms: 30 * 1000,
+                include_partial_blocks: false,
+                partial_blocks_only: false,
                 noop_mode: false,
             }).await;
 
