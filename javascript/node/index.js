@@ -4,19 +4,19 @@ import {
     createAuthInterceptor,
     createRegistry,
     applyParams,
-    fetchSubstream
+    fetchSubstream,
+    authIssue
 } from '@substreams/core';
 import { createConnectTransport } from "@connectrpc/connect-node";
 import { getCursor } from "./cursor.js";
 import { isErrorRetryable } from "./error.js";
 import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 
-const TOKEN = process.env.SUBSTREAMS_API_TOKEN
-const ENDPOINT = "https://mainnet.sol.streamingfast.io:443"
-const SPKG = "https://spkg.io/streamingfast/solana_common-v0.3.3.spkg"
-const MODULE = "transactions_by_programid_and_account_without_votes"
-const START_BLOCK = '318876956'
-const STOP_BLOCK = '+10'
+const KEY = process.env.SUBSTREAMS_API_KEY
+const ENDPOINT = "https://accounts.devnet.sol.streamingfast.io"
+const SPKG = "https://spkg.io/v1/packages/common/v0.1.0"
+const MODULE = "map_clocks"
+const START_BLOCK = '-1'
 
 /*
     Entrypoint of the application.
@@ -24,19 +24,20 @@ const STOP_BLOCK = '+10'
     The application MUST handle disconnections and commit the provided cursor to avoid missing information.
 */
 const main = async () => {
+    const {token, expires_at} = await authIssue(KEY)
+
     const pkg = await fetchPackage();
-    applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:3EsvvyqporKr5DVpzWsdYCphpXqXnQBMQLGNwSH5MmRE"], pkg.modules?.modules);
     const registry = createRegistry(pkg);
 
     const transport = createConnectTransport({
         baseUrl: ENDPOINT,
-        interceptors: [createAuthInterceptor(TOKEN)],
+        interceptors: [createAuthInterceptor(token)],
         useBinaryFormat: true,
         jsonOptions: {
             typeRegistry: registry,
         },
     });
-    
+
     // The infinite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
     // and start consuming from the latest committed cursor.
     while (true) {
@@ -66,11 +67,10 @@ const stream = async (pkg, registry, transport) => {
         substreamPackage: pkg,
         outputModule: MODULE,
         productionMode: true,
-        startBlockNum: START_BLOCK,
-        stopBlockNum: STOP_BLOCK,
+        startBlockNum: -1,
         startCursor: await getCursor() ?? undefined
     });
-    
+
     // Stream the blocks
     for await (const response of streamBlocks(transport, request)) {
         /*
