@@ -37,8 +37,8 @@ const main = async () => {
         },
     });
     
-    // The infite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
-    // and start consuming from the latest commited cursor.
+    // The infinite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
+    // and start consuming from the latest committed cursor.
     while (true) {
         try {
             await stream(pkg, registry, transport);
