@@ -8,4 +8,3 @@ The Go and JavaScript/TypeScript examples found below uses officially supported 
     - [Web Example](javascript/web/README.md)
 - [Python Example](python/README.md)
 - [Rust Example](rust/README.md)
-- [Substreams Subgraph Triggers Example](subgraph-triggers/README.md)
