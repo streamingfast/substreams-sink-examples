@@ -180,8 +180,12 @@ pub struct ProcessRangeRequest {
     pub stream_output: bool,
     #[prost(map="string, string", tag="18")]
     pub foundational_store_endpoints: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// if non-zero, above this duration in nanoseconds, the eth_calls will use "latest" instead of block ref. It will also automatically retry 'block not found' with 'latest'. It has precedence over eth_call_fallback_to_number_duration.
     #[prost(int64, tag="19")]
     pub eth_call_fallback_to_latest_duration: i64,
+    /// if non-zero, above this duration in nanoseconds, the eth_calls will use block number instead of block hash
+    #[prost(int64, tag="20")]
+    pub eth_call_fallback_to_number_duration: i64,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

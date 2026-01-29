@@ -72,15 +72,23 @@ async fn main() -> Result<(), Error> {
     }
 
     let token_env = env::var("SUBSTREAMS_API_TOKEN").unwrap_or("".to_string());
+    let api_key_env = env::var("SUBSTREAMS_API_KEY").unwrap_or("".to_string());
 
-    let mut token: Option<String> = None;
-    if token_env.len() > 0 {
-        token = Some(token_env);
-    }
+    let token: Option<String> = if !token_env.is_empty() {
+        Some(token_env)
+    } else {
+        None
+    };
+
+    let api_key: Option<String> = if !api_key_env.is_empty() {
+        Some(api_key_env)
+    } else {
+        None
+    };
 
     let package = read_package(&package_file, params).await?;
     let block_range = read_block_range(&package, &module_name, block_range)?;
-    let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, token).await?);
+    let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, token, api_key).await?);
 
     let cursor: Option<String> = load_persisted_cursor()?;
 

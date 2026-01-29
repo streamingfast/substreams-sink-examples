@@ -56,18 +56,16 @@ pub struct Request {
     /// Progress_messages_interval_ms is the interval between progress messages, in milliseconds (minimum: 500, default: start at 500ms and ramp up to 5000ms within 1min)
     #[prost(uint64, tag="14")]
     pub progress_messages_interval_ms: u64,
-    /// If true, partial blocks are also sent on the stream
-    #[prost(bool, tag="15")]
-    pub include_partial_blocks: bool,
-    /// If true, only partial blocks are sent, no 'block-scoped-data' or cursor.
-    /// This value supersedes include_partial_blocks
+    /// If true, blocks close to head will be sent in "partials" as soon as we get them.
+    /// This means that you will get different versions of the same block number, each an incomplete increment
+    /// Other blocks will be sent completely (older blocks, or blocks for which the provider did not get a partial in time)
     #[prost(bool, tag="16")]
-    pub partial_blocks_only: bool,
+    pub partial_blocks: bool,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Response {
-    #[prost(oneof="response::Message", tags="1, 2, 3, 4, 5, 10, 11, 12")]
+    #[prost(oneof="response::Message", tags="1, 2, 3, 4, 5, 10, 11")]
     pub message: ::core::option::Option<response::Message>,
 }
 /// Nested message and enum types in `Response`.
@@ -93,8 +91,6 @@ pub mod response {
         /// Available only in developer mode, and only if `debug_initial_store_snapshot_for_modules` is set.
         #[prost(message, tag="11")]
         DebugSnapshotComplete(super::InitialSnapshotComplete),
-        #[prost(message, tag="12")]
-        PartialBlockData(super::PartialBlockData),
     }
 }
 /// BlockUndoSignal informs you that every bit of data
@@ -128,16 +124,16 @@ pub struct BlockScopedData {
     /// done using the key specified by SessionInit::attestation_public_key.
     #[prost(string, tag="12")]
     pub attestation: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PartialBlockData {
-    #[prost(message, optional, tag="1")]
-    pub output: ::core::option::Option<MapModuleOutput>,
-    #[prost(message, optional, tag="2")]
-    pub clock: ::core::option::Option<super::super::v1::Clock>,
-    #[prost(uint32, tag="3")]
-    pub partial_index: u32,
+    /// true if this is a partial block, meaning that it contains only parts of the block data and that its hash will be replaced
+    #[prost(bool, tag="13")]
+    pub is_partial: bool,
+    /// Only present if is_partial==true
+    #[prost(uint32, optional, tag="14")]
+    pub partial_index: ::core::option::Option<u32>,
+    /// Only present if is_partial==true
+    /// true if this is the last partial of a given block, this will be the correct hash of the block (unless there are reorgs)
+    #[prost(bool, optional, tag="15")]
+    pub is_last_partial: ::core::option::Option<bool>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

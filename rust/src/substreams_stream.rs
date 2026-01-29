@@ -89,8 +89,7 @@ fn stream_blocks(
                 dev_output_modules: vec![],
                 limit_processed_blocks: u64::MAX,
                 progress_messages_interval_ms: 30 * 1000,
-                include_partial_blocks: false,
-                partial_blocks_only: false,
+                partial_blocks: false,
                 noop_mode: false,
             }).await;
 

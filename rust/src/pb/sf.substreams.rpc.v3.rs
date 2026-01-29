@@ -71,13 +71,11 @@ pub struct Request {
     /// default: start at 500ms and ramp up to 5000ms within 1min
     #[prost(uint64, tag="14")]
     pub progress_messages_interval_ms: u64,
-    /// If true, partial blocks are also sent on the stream
-    #[prost(bool, tag="15")]
-    pub include_partial_blocks: bool,
-    /// If true, only partial blocks are sent, no 'block-scoped-data' or cursor.
-    /// This value supersedes include_partial_blocks
+    /// If true, blocks close to head will be sent in "partials" as soon as we get them.
+    /// This means that you will get different versions of the same block number, each an incomplete increment
+    /// Other blocks will be sent completely (older blocks, or blocks for which the provider did not get a partial in time)
     #[prost(bool, tag="16")]
-    pub partial_blocks_only: bool,
+    pub partial_blocks: bool,
 }
 include!("sf.substreams.rpc.v3.tonic.rs");
 // @@protoc_insertion_point(module)
