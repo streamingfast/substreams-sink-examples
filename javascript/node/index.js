@@ -6,7 +6,7 @@ import {
     applyParams,
     fetchSubstream
 } from '@substreams/core';
-import { createConnectTransport } from "@connectrpc/connect-node";
+import { createGrpcTransport } from "@connectrpc/connect-node";
 import { getCursor } from "./cursor.js";
 import { isErrorRetryable } from "./error.js";
 import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
@@ -26,17 +26,20 @@ const STOP_BLOCK = '+10'
 const main = async () => {
     const pkg = await fetchPackage();
     applyParams(["transactions_by_programid_and_account_without_votes=program:JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 && account:3EsvvyqporKr5DVpzWsdYCphpXqXnQBMQLGNwSH5MmRE"], pkg.modules?.modules);
+
     const registry = createRegistry(pkg);
 
-    const transport = createConnectTransport({
+    // We use the gRPC transport, this is the fastest way to stream the blocks with our server,
+    // the Connect RPC transport adding a 15%-25% overhead compare to the gRPC transport when
+    // downloading big amount of data.
+    const transport = createGrpcTransport({
         baseUrl: ENDPOINT,
         interceptors: [createAuthInterceptor(TOKEN)],
-        useBinaryFormat: true,
         jsonOptions: {
             typeRegistry: registry,
         },
     });
-    
+
     // The infinite loop handles disconnections. Every time an disconnection error is thrown, the loop will automatically reconnect
     // and start consuming from the latest committed cursor.
     while (true) {
@@ -70,7 +73,7 @@ const stream = async (pkg, registry, transport) => {
         stopBlockNum: STOP_BLOCK,
         startCursor: await getCursor() ?? undefined
     });
-    
+
     // Stream the blocks
     for await (const response of streamBlocks(transport, request)) {
         /*
