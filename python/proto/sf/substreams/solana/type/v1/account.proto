@@ -1,0 +1,25 @@
+syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
+package sf.substreams.solana.type.v1;
+
+
+message FilteredAccounts {
+  repeated Account accounts = 1;
+}
+
+message AccountBlock {
+    required uint64 slot = 1;
+    required string hash = 2;
+    required uint64 parent_slot = 3;
+    required string parent_hash = 4;
+    required google.protobuf.Timestamp timestamp = 6;
+    required Account accounts = 7;
+}
+
+message Account {
+    required bytes address = 1;
+    required bytes owner = 2;
+    required bytes data = 3;
+    required bool deleted = 7;
+}
