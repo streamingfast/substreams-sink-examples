@@ -10,10 +10,9 @@ use std::{
 use tokio::time::sleep;
 use tokio_retry::strategy::ExponentialBackoff;
 
-use crate::pb::sf::substreams::rpc::v2::{
-    response::Message, BlockScopedData, BlockUndoSignal, Response,
-};
+use crate::pb::sf::substreams::rpc::v2::{BlockScopedData, BlockUndoSignal};
 use crate::pb::sf::substreams::rpc::v3::Request;
+use crate::pb::sf::substreams::rpc::v4::{response::Message, Response};
 use crate::pb::sf::substreams::v1::Package;
 
 use crate::substreams::SubstreamsEndpoint;
@@ -100,14 +99,16 @@ fn stream_blocks(
                     let mut encountered_error = false;
                     for await response in stream{
                         match process_substreams_response(response, &mut last_progress_report).await {
-                            BlockProcessedResult::BlockScopedData(block_scoped_data) => {
+                            BlockProcessedResult::BlockScopedDatas(block_scoped_datas) => {
                                 // Reset backoff because we got a good value from the stream
                                 backoff = ExponentialBackoff::from_millis(500).max_delay(Duration::from_secs(45));
 
-                                let cursor = block_scoped_data.cursor.clone();
-                                yield BlockResponse::New(block_scoped_data);
+                                for block_scoped_data in block_scoped_datas {
+                                    let cursor = block_scoped_data.cursor.clone();
+                                    yield BlockResponse::New(block_scoped_data);
 
-                                latest_cursor = cursor;
+                                    latest_cursor = cursor;
+                                }
                             },
                             BlockProcessedResult::BlockUndoSignal(block_undo_signal) => {
                                 // Reset backoff because we got a good value from the stream
@@ -159,7 +160,7 @@ fn stream_blocks(
 
 enum BlockProcessedResult {
     Skip(),
-    BlockScopedData(BlockScopedData),
+    BlockScopedDatas(Vec<BlockScopedData>),
     BlockUndoSignal(BlockUndoSignal),
     TonicError(tonic::Status),
 }
@@ -181,8 +182,8 @@ async fn process_substreams_response(
             );
             BlockProcessedResult::Skip()
         }
-        Some(Message::BlockScopedData(block_scoped_data)) => {
-            BlockProcessedResult::BlockScopedData(block_scoped_data)
+        Some(Message::BlockScopedDatas(block_scoped_datas)) => {
+            BlockProcessedResult::BlockScopedDatas(block_scoped_datas.items)
         }
         Some(Message::BlockUndoSignal(block_undo_signal)) => {
             BlockProcessedResult::BlockUndoSignal(block_undo_signal)

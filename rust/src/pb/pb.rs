@@ -45,6 +45,11 @@ pub mod sf {
                 include!("sf.substreams.rpc.v3.rs");
                 // @@protoc_insertion_point(sf.substreams.rpc.v3)
             }
+            // @@protoc_insertion_point(attribute:sf.substreams.rpc.v4)
+            pub mod v4 {
+                include!("sf.substreams.rpc.v4.rs");
+                // @@protoc_insertion_point(sf.substreams.rpc.v4)
+            }
         }
         pub mod sink {
             pub mod service {

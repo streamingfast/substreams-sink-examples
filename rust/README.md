@@ -75,7 +75,9 @@ buf generate --exclude-path="google" <path/to/substream.spkg>#format=bin
 You can generate against published [Substreams Buf Module](https://buf.build/streamingfast/substreams):
 
 ```bash
-buf generate buf.build/streamingfast/substreams --include-imports
+buf generate buf.build/streamingfast/substreams:v1.18.1 --include-imports
 ```
 
 This will include only Substreams system Protobufs to decode packages and perform RPC operations.
+
+> **Note** You can pin to a specific version (e.g., `v1.18.1`) or omit the version to use the latest.

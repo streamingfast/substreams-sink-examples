@@ -8,8 +8,8 @@ use tonic::{
     transport::{Channel, ClientTlsConfig},
 };
 
-use crate::pb::sf::substreams::rpc::v2::Response;
-use crate::pb::sf::substreams::rpc::v3::{stream_client::StreamClient, Request};
+use crate::pb::sf::substreams::rpc::v3::Request;
+use crate::pb::sf::substreams::rpc::v4::{stream_client::StreamClient, Response};
 
 #[derive(Clone, Debug)]
 pub struct SubstreamsEndpoint {

@@ -7,7 +7,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/streamingfast/cli v0.0.4-0.20250815192146-d8a233ec3d0b
 	github.com/streamingfast/logging v0.0.0-20260108192805-38f96de0a641
-	github.com/streamingfast/substreams v1.18.1
+	github.com/streamingfast/substreams v1.18.2
 	github.com/streamingfast/substreams-sink-database-changes v1.3.1
 )
 
@@ -127,7 +127,7 @@ require (
 	github.com/streamingfast/bstream v0.0.2-0.20260219205021-a73f004bfdea // indirect
 	github.com/streamingfast/dbin v0.9.1-0.20231117225723-59790c798e2c // indirect
 	github.com/streamingfast/derr v0.0.0-20250814163534-bd7407bd89d7 // indirect
-	github.com/streamingfast/dgrpc v0.0.0-20260218164858-719a69f1b7b4 // indirect
+	github.com/streamingfast/dgrpc v0.0.0-20260224192836-e5cd6cffceff // indirect
 	github.com/streamingfast/dmetrics v0.0.0-20260109212625-35256f512c62 // indirect
 	github.com/streamingfast/dstore v0.1.3-0.20260113210117-94d66eda2027 // indirect
 	github.com/streamingfast/firehose-networks v0.2.2 // indirect
