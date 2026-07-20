@@ -9,16 +9,9 @@ use semver::Version;
 
 use crate::pb::sf::substreams::v1::module::input::{Input, Params};
 use prost::Message;
-use std::collections::VecDeque;
-use std::time::{Duration, Instant};
 use std::{env, process::exit, sync::Arc};
 use substreams::SubstreamsEndpoint;
 use substreams_stream::{BlockResponse, SubstreamsStream};
-
-/// Rolling window size for recent averages (inter-next delay, process time, wait).
-const STATS_WINDOW: usize = 1000;
-/// Print a compact stats line every N block-scoped data messages.
-const STATS_REPORT_EVERY: u64 = 100;
 
 mod pb;
 mod substreams;
@@ -99,6 +92,8 @@ async fn main() -> Result<(), Error> {
 
     let cursor: Option<String> = load_persisted_cursor()?;
 
+    // Consumption stats (inter_next / wait_next / process / keep-up) are emitted
+    // automatically by SubstreamsStream — no main-loop wiring required.
     let mut stream = SubstreamsStream::new(
         endpoint,
         cursor,
@@ -108,215 +103,30 @@ async fn main() -> Result<(), Error> {
         block_range.1,
     );
 
-    let mut stats = StreamStats::new();
-    // Start of the wait for the *next* stream.next().await. Reset after each
-    // block/undo is fully handled so wait_next excludes client processing time.
-    let mut wait_start = Instant::now();
-
     loop {
-        // Time spent waiting inside next().await: near-zero means block-scoped
-        // data was already available (client is the bottleneck); large values mean
-        // the server/network is pacing delivery.
         match stream.next().await {
             None => {
                 println!("Stream consumed");
-                stats.report("final");
                 break;
             }
             Some(Ok(BlockResponse::New(data))) => {
-                let received_at = Instant::now();
-                let wait = wait_start.elapsed();
-
-                let process_start = Instant::now();
                 process_block_scoped_data(&data)?;
                 persist_cursor(data.cursor)?;
-                let process = process_start.elapsed();
-
-                stats.on_block(received_at, wait, process);
-                if stats.should_report() {
-                    stats.report("periodic");
-                }
-
-                wait_start = Instant::now();
             }
             Some(Ok(BlockResponse::Undo(undo_signal))) => {
                 process_block_undo_signal(&undo_signal)?;
                 persist_cursor(undo_signal.last_valid_cursor)?;
-                stats.on_undo();
-
-                wait_start = Instant::now();
             }
             Some(Err(err)) => {
                 println!();
                 println!("Stream terminated with error");
                 println!("{:?}", err);
-                stats.report("error");
                 exit(1);
             }
         }
     }
 
     Ok(())
-}
-
-/// Accumulates stream-consumption metrics so you can tell whether the client is
-/// keeping up with block-scoped data as it becomes available.
-///
-/// - **inter_next**: time between successive `stream.next()` returns (cycle time).
-/// - **wait_next**: time spent blocked in `stream.next().await` (server/network readiness).
-/// - **process**: time in `process_block_scoped_data` + `persist_cursor` (client work).
-///
-/// If recent `wait_next` is ~0 while `process` dominates, the client is behind.
-/// If `wait_next` >> `process`, the server (or live head) is pacing you.
-struct StreamStats {
-    started_at: Instant,
-    /// Instant when the previous `stream.next()` returned a block (for inter-next).
-    last_received_at: Option<Instant>,
-    total_blocks: u64,
-    total_undos: u64,
-    /// Samples that contribute to inter-next averages (skips the first block).
-    inter_samples: u64,
-    total_inter_us: u128,
-    total_wait_us: u128,
-    total_process_us: u128,
-    window_inter_us: VecDeque<u128>,
-    window_wait_us: VecDeque<u128>,
-    window_process_us: VecDeque<u128>,
-}
-
-impl StreamStats {
-    fn new() -> Self {
-        Self {
-            started_at: Instant::now(),
-            last_received_at: None,
-            total_blocks: 0,
-            total_undos: 0,
-            inter_samples: 0,
-            total_inter_us: 0,
-            total_wait_us: 0,
-            total_process_us: 0,
-            window_inter_us: VecDeque::with_capacity(STATS_WINDOW),
-            window_wait_us: VecDeque::with_capacity(STATS_WINDOW),
-            window_process_us: VecDeque::with_capacity(STATS_WINDOW),
-        }
-    }
-
-    fn on_block(&mut self, received_at: Instant, wait: Duration, process: Duration) {
-        self.total_blocks += 1;
-
-        // Delay between successive next() returns ≈ previous process time + this wait.
-        if let Some(prev) = self.last_received_at {
-            let inter_us = received_at.duration_since(prev).as_micros();
-            self.total_inter_us += inter_us;
-            self.inter_samples += 1;
-            push_window(&mut self.window_inter_us, inter_us);
-        }
-        self.last_received_at = Some(received_at);
-
-        let wait_us = wait.as_micros();
-        let process_us = process.as_micros();
-        self.total_wait_us += wait_us;
-        self.total_process_us += process_us;
-        push_window(&mut self.window_wait_us, wait_us);
-        push_window(&mut self.window_process_us, process_us);
-    }
-
-    fn on_undo(&mut self) {
-        self.total_undos += 1;
-    }
-
-    fn should_report(&self) -> bool {
-        self.total_blocks > 0 && self.total_blocks % STATS_REPORT_EVERY == 0
-    }
-
-    fn report(&self, label: &str) {
-        if self.total_blocks == 0 {
-            println!("stats[{label}]: no block-scoped data received yet");
-            return;
-        }
-
-        let elapsed = self.started_at.elapsed().as_secs_f64().max(1e-9);
-        let rate = self.total_blocks as f64 / elapsed;
-
-        let inter_overall = avg_us(self.total_inter_us, self.inter_samples);
-        let inter_window = window_avg_us(&self.window_inter_us);
-        let process_overall = avg_us(self.total_process_us, self.total_blocks);
-        let process_window = window_avg_us(&self.window_process_us);
-        let wait_overall = avg_us(self.total_wait_us, self.total_blocks);
-        let wait_window = window_avg_us(&self.window_wait_us);
-
-        let keep_up = consumer_status(wait_window, process_window);
-
-        println!(
-            "stats[{label}]: blocks={} undos={} rate={:.1}/s | \
-             inter_next avg={} last{}={} | \
-             process avg={} last{}={} | \
-             wait_next avg={} last{}={} | \
-             consumer={}",
-            self.total_blocks,
-            self.total_undos,
-            rate,
-            fmt_us(inter_overall),
-            self.window_inter_us.len(),
-            fmt_us(inter_window),
-            fmt_us(process_overall),
-            self.window_process_us.len(),
-            fmt_us(process_window),
-            fmt_us(wait_overall),
-            self.window_wait_us.len(),
-            fmt_us(wait_window),
-            keep_up,
-        );
-    }
-}
-
-fn push_window(window: &mut VecDeque<u128>, value: u128) {
-    if window.len() == STATS_WINDOW {
-        window.pop_front();
-    }
-    window.push_back(value);
-}
-
-fn avg_us(sum: u128, count: u64) -> f64 {
-    if count == 0 {
-        0.0
-    } else {
-        sum as f64 / count as f64
-    }
-}
-
-fn window_avg_us(window: &VecDeque<u128>) -> f64 {
-    if window.is_empty() {
-        0.0
-    } else {
-        let sum: u128 = window.iter().sum();
-        sum as f64 / window.len() as f64
-    }
-}
-
-fn fmt_us(us: f64) -> String {
-    if us >= 1_000_000.0 {
-        format!("{:.2}s", us / 1_000_000.0)
-    } else if us >= 1_000.0 {
-        format!("{:.2}ms", us / 1_000.0)
-    } else {
-        format!("{:.0}µs", us)
-    }
-}
-
-/// Heuristic from the recent window: near-zero wait with non-trivial process
-/// work means data was ready when polled (client-bound). Large wait relative
-/// to process means the server or live head is pacing delivery.
-fn consumer_status(wait_avg_us: f64, process_avg_us: f64) -> &'static str {
-    const NEAR_ZERO_WAIT_US: f64 = 1_000.0; // 1ms
-
-    if wait_avg_us < NEAR_ZERO_WAIT_US && process_avg_us > wait_avg_us * 5.0 {
-        "client-bound (data ready when polled)"
-    } else if wait_avg_us > process_avg_us * 5.0 && wait_avg_us >= NEAR_ZERO_WAIT_US {
-        "server-paced (waiting on stream)"
-    } else {
-        "balanced"
-    }
 }
 
 fn process_block_scoped_data(data: &BlockScopedData) -> Result<(), Error> {
