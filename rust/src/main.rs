@@ -92,6 +92,8 @@ async fn main() -> Result<(), Error> {
 
     let cursor: Option<String> = load_persisted_cursor()?;
 
+    // Consumption stats (inter_next / wait_next / process / keep-up) are emitted
+    // automatically by SubstreamsStream — no main-loop wiring required.
     let mut stream = SubstreamsStream::new(
         endpoint,
         cursor,
