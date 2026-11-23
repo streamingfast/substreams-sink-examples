@@ -1,7 +1,6 @@
 import {
   createRequest,
   streamBlocks,
-  createAuthInterceptor,
   createRegistry,
   fetchSubstream
 } from '@substreams/core';
@@ -10,12 +9,20 @@ import { getCursor } from "./cursor.js"
 import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 import { isErrorRetryable } from "./error.js"
 
-const TOKEN = "<SUBSTREAMS-TOKEN>"
+const API_KEY = "<SUBSTREAMS-API-KEY>"
 const ENDPOINT = "https://mainnet.eth.streamingfast.io"
 const SPKG = "https://spkg.io/streamingfast/ethereum-explorer-v0.1.2.spkg"
 const MODULE = "map_block_meta"
 const START_BLOCK = '100000'
 const STOP_BLOCK = '+10000'
+
+// Sends the Substreams API key in the `x-api-key` header of each request.
+// `@substreams/core` has no API key support yet (only `createAuthInterceptor` for tokens), replace
+// with the library's version once available.
+const createApiKeyInterceptor = (apiKey) => (next) => async (req) => {
+  req.header.set("x-api-key", apiKey);
+  return await next(req);
+};
 
 /*
   Entrypoint of the application.
@@ -23,8 +30,8 @@ const STOP_BLOCK = '+10000'
   The application MUST handle disconnections and commit the provided cursor to avoid missing information.
 */
 const main = async () => {
-  if (!TOKEN || TOKEN === "<SUBSTREAMS-TOKEN>") {
-    throw new Error("You haven't modified the 'TOKEN' variable assignment, please read the 'README.md#getting-started' for further details");
+  if (!API_KEY || API_KEY === "<SUBSTREAMS-API-KEY>") {
+    throw new Error("You haven't modified the 'API_KEY' variable assignment, please read the 'README.md#getting-started' for further details");
   }
 
   const pkg = await fetchPackage();
@@ -32,7 +39,7 @@ const main = async () => {
 
   const transport = createConnectTransport({
       baseUrl: ENDPOINT,
-      interceptors: [createAuthInterceptor(TOKEN)],
+      interceptors: [createApiKeyInterceptor(API_KEY)],
       useBinaryFormat: true,
       jsonOptions: {
           typeRegistry: registry,

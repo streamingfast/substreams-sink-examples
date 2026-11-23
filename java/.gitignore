@@ -1,0 +1,6 @@
+.envrc*
+
+/.gradle
+/build
+/data
+.idea

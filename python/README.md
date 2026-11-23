@@ -8,7 +8,7 @@ Five easy steps:
 
    > If the command crashes on you, you can manually copy Protobuf files like we did in this project and run `buf generate ./proto`.
 
-1. Define an `SF_API_TOKEN` environment variable following instructions at https://docs.substreams.dev/documentation/consume/authentication
+1. Define a `SUBSTREAMS_API_KEY` environment variable following instructions at https://docs.substreams.dev/documentation/consume/authentication
 1. Run the Python sink using `poetry run python main.py`
 
 #### Caveats

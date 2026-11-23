@@ -14,7 +14,6 @@ use crate::pb::sf::substreams::rpc::v4::{stream_client::StreamClient, Response};
 #[derive(Clone, Debug)]
 pub struct SubstreamsEndpoint {
     pub uri: String,
-    pub token: Option<String>,
     pub api_key: Option<String>,
     channel: Channel,
 }
@@ -26,7 +25,7 @@ impl Display for SubstreamsEndpoint {
 }
 
 impl SubstreamsEndpoint {
-    pub async fn new<S: AsRef<str>>(url: S, token: Option<String>, api_key: Option<String>) -> Result<Self, anyhow::Error> {
+    pub async fn new<S: AsRef<str>>(url: S, api_key: Option<String>) -> Result<Self, anyhow::Error> {
         let uri = url
             .as_ref()
             .parse::<Uri>()
@@ -48,7 +47,6 @@ impl SubstreamsEndpoint {
         Ok(SubstreamsEndpoint {
             uri,
             channel,
-            token,
             api_key,
         })
     }
@@ -57,12 +55,6 @@ impl SubstreamsEndpoint {
         self: Arc<Self>,
         request: Request,
     ) -> Result<tonic::Streaming<Response>, anyhow::Error> {
-        let token_metadata: Option<MetadataValue<tonic::metadata::Ascii>> = match self.token.clone()
-        {
-            Some(token) => Some(token.as_str().try_into()?),
-            None => None,
-        };
-
         let api_key_metadata: Option<MetadataValue<tonic::metadata::Ascii>> = match self.api_key.clone()
         {
             Some(api_key) => Some(api_key.as_str().try_into()?),
@@ -72,9 +64,6 @@ impl SubstreamsEndpoint {
         let mut client = StreamClient::with_interceptor(
             self.channel.clone(),
             move |mut r: tonic::Request<()>| {
-                if let Some(ref t) = token_metadata {
-                    r.metadata_mut().insert("authorization", t.clone());
-                }
                 if let Some(ref k) = api_key_metadata {
                     r.metadata_mut().insert("x-api-key", k.clone());
                 }

@@ -2,13 +2,13 @@
 
 This example consumes a Substreams package (specifically, the [Ethereum Explorer](https://substreams.dev/streamingfast/ethereum-explorer/v0.1.2)) using the Substreams JS library in NodeJS.
 
-The [API token](https://substreams.streamingfast.io/documentation/consume/authentication) is provided through an environment variable:
+The [API key](https://substreams.streamingfast.io/documentation/consume/authentication) is provided through an environment variable:
 
 ```javascript
-const TOKEN = process.env.SUBSTREAMS_API_TOKEN
+const API_KEY = process.env.SUBSTREAMS_API_KEY
 ```
 
-If you don't have it, set the `SUBSTREAMS_API_TOKEN` environment variable. Then, you can easily get started:
+If you don't have it, set the `SUBSTREAMS_API_KEY` environment variable. Then, you can easily get started:
 
 1. Install the dependencies.
 

@@ -1,7 +1,6 @@
 import {
     createRequest,
     streamBlocks,
-    createAuthInterceptor,
     createRegistry,
     fetchSubstream,
 } from '@substreams/core';
@@ -13,7 +12,15 @@ import { getCursor } from "./cursor";
 import { isErrorRetryable } from "./error";
 import { handleResponseMessage } from "./handlers";
 import { Handlers } from "./types";
-import { ENDPOINT, MODULE, SPKG, START_BLOCK, STOP_BLOCK, TOKEN } from './constants';
+import { ENDPOINT, MODULE, SPKG, START_BLOCK, STOP_BLOCK, API_KEY } from './constants';
+
+// Sends the Substreams API key in the `x-api-key` header of each request.
+// `@substreams/core` has no API key support yet (only `createAuthInterceptor` for tokens), replace
+// with the library's version once available.
+const createApiKeyInterceptor = (apiKey: string): Interceptor => (next) => async (req) => {
+    req.header.set("x-api-key", apiKey);
+    return await next(req);
+};
 
 /*
     Entrypoint of the application.
@@ -23,11 +30,11 @@ import { ENDPOINT, MODULE, SPKG, START_BLOCK, STOP_BLOCK, TOKEN } from './consta
 export const startSubstreams = async (handlers: Handlers) => {
     const pkg: Package = await fetchPackage()
     const registry: IMessageTypeRegistry = createRegistry(pkg);
-    const authInterceptor: Interceptor = createAuthInterceptor(TOKEN);
-
-    if (!TOKEN || TOKEN === "<SUBSTREAMS-TOKEN>") {
-        throw new Error("You haven't modified the 'TOKEN' variable assignment in 'src/substreams/constants.ts', please read the 'README.md#getting-started' for further details");
+    if (!API_KEY || API_KEY === "<SUBSTREAMS-API-KEY>") {
+        throw new Error("You haven't modified the 'API_KEY' variable assignment in 'src/substreams/constants.ts', please read the 'README.md#getting-started' for further details");
     }
+
+    const authInterceptor: Interceptor = createApiKeyInterceptor(API_KEY);
 
     const transport = createConnectTransport({
         baseUrl: ENDPOINT,

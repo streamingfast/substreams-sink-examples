@@ -1,4 +1,4 @@
-export const TOKEN: string = "<SUBSTREAMS-TOKEN>"
+export const API_KEY: string = "<SUBSTREAMS-API-KEY>"
 export const ENDPOINT = "https://mainnet.eth.streamingfast.io"
 export const SPKG = "https://spkg.io/v1/files/ethereum-common-v0.3.1.spkg"
 export const MODULE = "all_events"

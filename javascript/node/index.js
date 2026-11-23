@@ -1,7 +1,6 @@
 import {
     createRequest,
     streamBlocks,
-    createAuthInterceptor,
     createRegistry,
     applyParams,
     fetchSubstream
@@ -11,12 +10,20 @@ import { getCursor } from "./cursor.js";
 import { isErrorRetryable } from "./error.js";
 import { handleResponseMessage, handleProgressMessage } from "./handlers.js"
 
-const TOKEN = process.env.SUBSTREAMS_API_TOKEN
+const API_KEY = process.env.SUBSTREAMS_API_KEY
 const ENDPOINT = "https://mainnet.sol.streamingfast.io:443"
 const SPKG = "https://spkg.io/streamingfast/solana_common-v0.3.3.spkg"
 const MODULE = "transactions_by_programid_and_account_without_votes"
 const START_BLOCK = '318876956'
 const STOP_BLOCK = '+10'
+
+// Sends the Substreams API key in the `x-api-key` header of each request.
+// `@substreams/core` has no API key support yet (only `createAuthInterceptor` for tokens), replace
+// with the library's version once available.
+const createApiKeyInterceptor = (apiKey) => (next) => async (req) => {
+    req.header.set("x-api-key", apiKey);
+    return await next(req);
+};
 
 /*
     Entrypoint of the application.
@@ -34,7 +41,7 @@ const main = async () => {
     // downloading big amount of data.
     const transport = createGrpcTransport({
         baseUrl: ENDPOINT,
-        interceptors: [createAuthInterceptor(TOKEN)],
+        interceptors: [createApiKeyInterceptor(API_KEY)],
         jsonOptions: {
             typeRegistry: registry,
         },

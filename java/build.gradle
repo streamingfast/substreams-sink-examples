@@ -1,0 +1,63 @@
+plugins {
+    id 'application'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// The client stack under investigation, pinned on purpose (grpc-java + Netty transport).
+def grpcVersion = '1.68.1'
+// Matches the protobuf-java version grpc-java 1.68.1 is built against.
+def protobufVersion = '3.25.5'
+
+dependencies {
+    implementation "io.grpc:grpc-netty:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
+
+    // Needed by grpc-java generated code (@Generated)
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+application {
+    mainClass = 'io.streamingfast.sink.Main'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// `gradle run` should be able to read stdin/args and stay attached to the terminal.
+tasks.named('run') {
+    standardInput = System.in
+}

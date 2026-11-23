@@ -33,7 +33,6 @@ Usage:
 
 Flags:
       --api-key-envvar string            Name of variable containing Substreams Api Key (default "SUBSTREAMS_API_KEY")
-      --api-token-envvar string          name of variable containing Substreams Authentication token (default "SUBSTREAMS_API_TOKEN")
       --development-mode                 Enable development mode, use it for testing purpose only, should not be used for production workload
   -e, --endpoint network_name            Substreams gRPC endpoint (supports http:// or https:// prefix). If empty, will be replaced by the SUBSTREAMS_ENDPOINT_{network_name} environment variable, where network_name is determined from the substreams manifest. Defaults to SSL unless prefixed with `http://` or if `--plaintext` flag is used.
       --final-blocks-only                Only process blocks that have pass finality, to prevent any reorg and undo signal by staying further away from the chain HEAD

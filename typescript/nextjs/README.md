@@ -12,10 +12,10 @@ The application uses the basic template provided by the [create-next-app](https:
 npm install
 ```
 
-1. Open the `constants.js` file, all the configuration variables of the application. Then, update the `TOKEN` variable with your Subtreams API token. If you have previously run the Substreams CLI, you can find the token at the `$SUBSTREAMS_API_TOKEN` environment variable of your system.
+1. Open the `constants.js` file, all the configuration variables of the application. Then, update the `API_KEY` variable with your Substreams API key. If you have previously run the Substreams CLI, you can find the key at the `$SUBSTREAMS_API_KEY` environment variable of your system.
 
 ```javascript
-const TOKEN = "<SUBSTREAMS-TOKEN>"
+const API_KEY = "<SUBSTREAMS-API-KEY>"
 ```
 
 1. You can run the application just like a normal NextJS application:

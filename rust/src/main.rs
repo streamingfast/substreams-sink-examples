@@ -52,8 +52,8 @@ async fn main() -> Result<(), Error> {
         println!(" # With module parameters for filtering");
         println!(" cargo run -- mainnet.eth.streamingfast.io:443 ethereum-common@v0.3.1 filtered_transactions --params=\"filtered_transactions:(call_method:0xa9059cbb)\" 21000000:+1");
         println!();
-        println!("The environment variable SUBSTREAMS_API_TOKEN must be set also");
-        println!("and should contain a valid Substream API token.");
+        println!("The environment variable SUBSTREAMS_API_KEY must be set also");
+        println!("and should contain a valid Substream API key.");
         exit(1);
     }
 
@@ -71,14 +71,7 @@ async fn main() -> Result<(), Error> {
         endpoint_url = format!("{}://{}", "https", &endpoint_url);
     }
 
-    let token_env = env::var("SUBSTREAMS_API_TOKEN").unwrap_or("".to_string());
     let api_key_env = env::var("SUBSTREAMS_API_KEY").unwrap_or("".to_string());
-
-    let token: Option<String> = if !token_env.is_empty() {
-        Some(token_env)
-    } else {
-        None
-    };
 
     let api_key: Option<String> = if !api_key_env.is_empty() {
         Some(api_key_env)
@@ -88,7 +81,7 @@ async fn main() -> Result<(), Error> {
 
     let package = read_package(&package_file, params).await?;
     let block_range = read_block_range(&package, &module_name, block_range)?;
-    let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, token, api_key).await?);
+    let endpoint = Arc::new(SubstreamsEndpoint::new(&endpoint_url, api_key).await?);
 
     let cursor: Option<String> = load_persisted_cursor()?;
 

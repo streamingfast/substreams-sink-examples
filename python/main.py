@@ -27,9 +27,9 @@ def read_spkg_from_url(url):
 
 
 def main():
-    sf_api_token = os.getenv("SF_API_TOKEN")
-    if not sf_api_token:
-        print("Error: SF_API_TOKEN environment variable is not defined.")
+    sf_api_key = os.getenv("SUBSTREAMS_API_KEY")
+    if not sf_api_key:
+        print("Error: SUBSTREAMS_API_KEY environment variable is not defined.")
         sys.exit(1)
 
     input = "https://github.com/streamingfast/substreams-solana-spl-token/raw/refs/heads/master/tokens/solana-spl-token-v0.1.0.spkg"
@@ -55,7 +55,7 @@ def main():
     print("Create a secure channel using the credentials")
     with grpc.secure_channel("mainnet.sol.streamingfast.io:443", creds) as channel:
         stub = service_pb2_grpc.StreamStub(channel)
-        metadata = [("authorization", f"Bearer {sf_api_token}")]
+        metadata = [("x-api-key", sf_api_key)]
         stream = stub.Blocks(request, metadata=metadata)
 
         print("Waiting for stream to start...")

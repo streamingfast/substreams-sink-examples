@@ -10,11 +10,11 @@ The application uses [Vite](https://vitejs.dev/) to set up a development servers
 npm run install
 ```
 
-2. Open the `main.js` and set your Substreams token in the `TOKEN` variable.
-If you have previously run the Substreams CLI, you can find the token at the `$SUBSTREAMS_API_TOKEN` environment variable of your system.
+2. Open the `main.js` and set your Substreams API key in the `API_KEY` variable.
+If you have previously run the Substreams CLI, you can find the key at the `$SUBSTREAMS_API_KEY` environment variable of your system.
 
 ```javascript
-const TOKEN = "<SUBSTREAMS-TOKEN>"
+const API_KEY = "<SUBSTREAMS-API-KEY>"
 ```
 
 
