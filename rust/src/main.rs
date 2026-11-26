@@ -7,13 +7,15 @@ use pb::sf::substreams::v1::Package;
 use regex::Regex;
 use semver::Version;
 
-use crate::pb::sf::substreams::v1::module::input::{Input, Params};
-use prost::Message;
+use crate::pb::sf::substreams::v1::__buffa::oneof::module::input::Input;
+use crate::pb::sf::substreams::v1::module::input::Params;
+use buffa::Message;
 use std::{env, process::exit, sync::Arc};
 use substreams::SubstreamsEndpoint;
 use substreams_stream::{BlockResponse, SubstreamsStream};
 
 mod pb;
+mod pb_connect;
 mod substreams;
 mod substreams_stream;
 
@@ -123,7 +125,7 @@ async fn main() -> Result<(), Error> {
 }
 
 fn process_block_scoped_data(data: &BlockScopedData) -> Result<(), Error> {
-    let output = data.output.as_ref().unwrap().map_output.as_ref().unwrap();
+    let output = &data.output.map_output;
 
     // You can decode the actual Any type received using this code:
     //
@@ -133,8 +135,8 @@ fn process_block_scoped_data(data: &BlockScopedData) -> Result<(), Error> {
     // your type, so you will need generate it using `substreams protogen` and import it from the
     // `src/pb` folder.
 
-    let clock = data.clock.as_ref().unwrap();
-    let timestamp = clock.timestamp.as_ref().unwrap();
+    let clock = &data.clock;
+    let timestamp = &clock.timestamp;
     let date = DateTime::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
         .expect("received timestamp should always be valid");
 
@@ -187,8 +189,6 @@ fn read_block_range(
 ) -> Result<(i64, u64), anyhow::Error> {
     let module = pkg
         .modules
-        .as_ref()
-        .unwrap()
         .modules
         .iter()
         .find(|m| m.name == module_name)
@@ -256,21 +256,21 @@ async fn read_package(input: &str, params: Vec<Param>) -> Result<Package, Error>
         // Assume it's a local file
         let content = std::fs::read(&mutable_input)
             .context(format_err!("read package from file '{}'", mutable_input))?;
-        Package::decode(content.as_ref()).context("decode command")
+        Package::decode_from_slice(&content).context("decode command")
     }?;
 
     if params.len() > 0 {
         // Find the module by name and apply the block filter
-        if let Some(modules) = &mut package.modules {
+        if let Some(modules) = package.modules.as_option_mut() {
             for param in params {
                 if let Some(module) = modules
                     .modules
                     .iter_mut()
                     .find(|m| m.name == param.module_name)
                 {
-                    module.inputs[0].input = Some(Input::Params(Params {
+                    module.inputs[0].input = Some(Input::Params(Box::new(Params {
                         value: param.expression,
-                    }));
+                    })));
                 }
             }
         }
@@ -319,7 +319,7 @@ fn read_params_flag(input: &str) -> anyhow::Result<Vec<Param>> {
 async fn read_http_package(input: &str) -> Result<Package, anyhow::Error> {
     let body = reqwest::get(input).await?.bytes().await?;
 
-    Package::decode(body).context("decode command")
+    Package::decode_from_slice(&body).context("decode command")
 }
 
 fn parse_standard_package_and_version(input: &str) -> Result<(String, String), Error> {

@@ -1,21 +1,29 @@
-use std::{fmt::Display, sync::Arc, time::Duration};
+use std::{fmt::Display, sync::Arc};
 
-use http::{uri::Scheme, Uri};
-use tonic::{
-    codec::CompressionEncoding,
-    codegen::http,
-    metadata::MetadataValue,
-    transport::{Channel, ClientTlsConfig},
+use anyhow::{anyhow, Context};
+use connectrpc::client::{
+    CallOptions, ClientConfig, Http2Connection, ServerStream, SharedHttp2Connection,
 };
+use connectrpc::Protocol;
+use http::{uri::Scheme, Uri};
 
 use crate::pb::sf::substreams::rpc::v3::Request;
-use crate::pb::sf::substreams::rpc::v4::{stream_client::StreamClient, Response};
+use crate::pb::sf::substreams::rpc::v4::ResponseView;
+use crate::pb_connect::sf::substreams::rpc::v4::StreamClient;
 
-#[derive(Clone, Debug)]
+/// Same limit as the previous tonic based implementation.
+const MAX_DECODING_MESSAGE_SIZE: usize = 10 * 1024 * 1024;
+
+/// Stream of `Response` messages (as zero-copy views) returned by the `Blocks` RPC.
+pub type ResponseStream = ServerStream<
+    <SharedHttp2Connection as connectrpc::client::ClientTransport>::ResponseBody,
+    ResponseView<'static>,
+>;
+
+#[derive(Clone)]
 pub struct SubstreamsEndpoint {
     pub uri: String,
-    pub api_key: Option<String>,
-    channel: Channel,
+    client: StreamClient<SharedHttp2Connection>,
 }
 
 impl Display for SubstreamsEndpoint {
@@ -29,55 +37,56 @@ impl SubstreamsEndpoint {
         let uri = url
             .as_ref()
             .parse::<Uri>()
-            .expect("the url should have been validated by now, so it is a valid Uri");
+            .context("the url should be a valid Uri")?;
 
-        let endpoint = match uri.scheme().unwrap_or(&Scheme::HTTP).as_str() {
-            "http" => Channel::builder(uri),
-            "https" => Channel::builder(uri)
-                .tls_config(ClientTlsConfig::new().with_native_roots())
-                .expect("TLS config on this host is invalid"),
-            _ => panic!("invalid uri scheme for firehose endpoint"),
+        // The connection is established lazily on first use and re-established on its own
+        // if it drops, so a failing endpoint surfaces as an error on the first request.
+        let connection = match uri.scheme().unwrap_or(&Scheme::HTTP).as_str() {
+            "http" => Http2Connection::lazy_plaintext(uri.clone()),
+            "https" => Http2Connection::lazy_tls(uri.clone(), Arc::new(tls_config()?)),
+            scheme => return Err(anyhow!("invalid uri scheme '{}' for substreams endpoint", scheme)),
+        };
+
+        // Substreams endpoints speak gRPC, the Connect protocol is not served on the same port.
+        let mut config = ClientConfig::new(uri.clone())
+            .with_protocol(Protocol::Grpc)
+            .with_default_max_message_size(MAX_DECODING_MESSAGE_SIZE);
+
+        if let Some(api_key) = &api_key {
+            config = config.with_default_header("x-api-key", api_key.as_str());
         }
-        .connect_timeout(Duration::from_secs(10))
-        .tcp_keepalive(Some(Duration::from_secs(30)));
-
-        let uri = endpoint.uri().to_string();
-        let channel = endpoint.connect_lazy();
 
         Ok(SubstreamsEndpoint {
-            uri,
-            channel,
-            api_key,
+            uri: uri.to_string(),
+            client: StreamClient::new(connection.shared(1024), config),
         })
     }
 
     pub async fn substreams(
         self: Arc<Self>,
         request: Request,
-    ) -> Result<tonic::Streaming<Response>, anyhow::Error> {
-        let api_key_metadata: Option<MetadataValue<tonic::metadata::Ascii>> = match self.api_key.clone()
-        {
-            Some(api_key) => Some(api_key.as_str().try_into()?),
-            None => None,
-        };
-
-        let mut client = StreamClient::with_interceptor(
-            self.channel.clone(),
-            move |mut r: tonic::Request<()>| {
-                if let Some(ref k) = api_key_metadata {
-                    r.metadata_mut().insert("x-api-key", k.clone());
-                }
-
-                Ok(r)
-            },
-        )
-        .accept_compressed(CompressionEncoding::Gzip)
-        .send_compressed(CompressionEncoding::Gzip)
-        .max_decoding_message_size(10 * 1024 * 1024);
-
-        let response_stream = client.blocks(request).await?;
-        let block_stream = response_stream.into_inner();
-
-        Ok(block_stream)
+    ) -> Result<ResponseStream, connectrpc::ConnectError> {
+        self.client
+            .blocks_with_options(request, CallOptions::default())
+            .await
     }
+}
+
+/// TLS configuration trusting the platform's native root certificates (ALPN `h2`
+/// is negotiated by the connection itself).
+fn tls_config() -> Result<rustls::ClientConfig, anyhow::Error> {
+    let mut roots = rustls::RootCertStore::empty();
+    let native = rustls_native_certs::load_native_certs();
+    for cert in native.certs {
+        // Ignore certificates the platform ships that rustls cannot parse.
+        let _ = roots.add(cert);
+    }
+
+    if roots.is_empty() {
+        return Err(anyhow!("no native root certificates could be loaded"));
+    }
+
+    Ok(rustls::ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth())
 }
