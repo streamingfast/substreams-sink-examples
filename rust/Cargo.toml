@@ -20,9 +20,13 @@ tokio = { version = "1.27", features = [
 ] }
 tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-retry = "0.3"
-tonic = { version = "0.12", features = ["gzip", "tls-roots"] }
-prost = "0.13"
-prost-types = "0.13"
+buffa = "0.9.2"
+buffa-types = "0.9.2"
+buffa-descriptor = { version = "0.9.2", features = ["views"] }
+connectrpc = { version = "0.9.1", default-features = false, features = ["gzip", "client", "client-tls"] }
+http = "1"
+rustls = "0.23"
+rustls-native-certs = "0.8"
 thiserror = "1"
 chrono = "0.4.38"
 regex = "1.11.1"

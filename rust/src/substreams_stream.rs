@@ -8,12 +8,13 @@ use std::{
     task::{Context, Poll},
     time::{Duration, Instant},
 };
+use connectrpc::{ConnectError, ErrorCode};
 use tokio::time::sleep;
 use tokio_retry::strategy::ExponentialBackoff;
 
 use crate::pb::sf::substreams::rpc::v2::{BlockScopedData, BlockUndoSignal};
 use crate::pb::sf::substreams::rpc::v3::Request;
-use crate::pb::sf::substreams::rpc::v4::{response::Message, Response};
+use crate::pb::sf::substreams::rpc::v4::{Response, __buffa::oneof::response::Message};
 use crate::pb::sf::substreams::v1::Package;
 
 use crate::substreams::SubstreamsEndpoint;
@@ -119,7 +120,7 @@ fn stream_blocks(
                 start_cursor: latest_cursor.clone(),
                 stop_block_num,
                 final_blocks_only: false,
-                package: package.clone(),
+                package: package.clone().into(),
                 params: Default::default(),
                 network: String::new(),
                 output_module: output_module_name.clone(),
@@ -137,11 +138,18 @@ fn stream_blocks(
             }).await;
 
             match result {
-                Ok(stream) => {
+                Ok(mut stream) => {
                     println!("Blockstreams connected");
 
                     let mut encountered_error = false;
-                    for await response in stream{
+                    loop {
+                        let response = match stream.message().await {
+                            Ok(Some(message)) => Ok(message.to_owned_message()),
+                            // Clean end of stream (`end_block` reached)
+                            Ok(None) => break,
+                            Err(err) => Err(err),
+                        };
+
                         match process_substreams_response(response, &mut last_progress_report).await {
                             BlockProcessedResult::BlockScopedDatas(block_scoped_datas) => {
                                 // Reset backoff because we got a good value from the stream
@@ -164,14 +172,14 @@ fn stream_blocks(
                                 latest_cursor = cursor;
                             },
                             BlockProcessedResult::Skip() => {},
-                            BlockProcessedResult::TonicError(status) => {
+                            BlockProcessedResult::StreamError(err) => {
                                 // Unauthenticated errors are not retried, we forward the error back to the
                                 // stream consumer which handles it
-                                if status.code() == tonic::Code::Unauthenticated {
-                                    return Err(anyhow::Error::new(status.clone()))?;
+                                if err.code == ErrorCode::Unauthenticated {
+                                    return Err(anyhow::Error::new(err))?;
                                 }
 
-                                println!("Received tonic error {:#}", status);
+                                println!("Received stream error {:#}", err);
                                 encountered_error = true;
                                 break;
                             },
@@ -206,16 +214,16 @@ enum BlockProcessedResult {
     Skip(),
     BlockScopedDatas(Vec<BlockScopedData>),
     BlockUndoSignal(BlockUndoSignal),
-    TonicError(tonic::Status),
+    StreamError(ConnectError),
 }
 
 async fn process_substreams_response(
-    result: Result<Response, tonic::Status>,
+    result: Result<Response, ConnectError>,
     last_progress_report: &mut Instant,
 ) -> BlockProcessedResult {
     let response = match result {
         Ok(v) => v,
-        Err(e) => return BlockProcessedResult::TonicError(e),
+        Err(e) => return BlockProcessedResult::StreamError(e),
     };
 
     match response.message {
@@ -230,11 +238,11 @@ async fn process_substreams_response(
             BlockProcessedResult::BlockScopedDatas(block_scoped_datas.items)
         }
         Some(Message::BlockUndoSignal(block_undo_signal)) => {
-            BlockProcessedResult::BlockUndoSignal(block_undo_signal)
+            BlockProcessedResult::BlockUndoSignal(*block_undo_signal)
         }
         Some(Message::Progress(progress)) => {
             if last_progress_report.elapsed() > Duration::from_secs(30) {
-                let processed_bytes = progress.processed_bytes.unwrap_or_default();
+                let processed_bytes = &progress.processed_bytes;
 
                 println!(
                     "Latest progress message received (Stages: {}, Jobs: {}, Processed Bytes: [Read: {}, Written: {}])",
