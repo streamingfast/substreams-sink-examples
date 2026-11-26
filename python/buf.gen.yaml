@@ -1,8 +1,18 @@
+# Only what the sink needs: the v3 Request / v4 Stream API and the Package. `include_imports`
+# pulls in the few protos they reference (rpc v2 messages, firehose, clock, modules).
 version: v2
-managed:
-  enabled: true
+inputs:
+  - module: buf.build/streamingfast/substreams
+    paths:
+      - sf/substreams/rpc/v4
+      - sf/substreams/v1/package.proto
 plugins:
-  - remote: buf.build/protocolbuffers/python:v28.2
-    out: .
-  - remote: buf.build/grpc/python:v1.67.0
-    out: .
+  - remote: buf.build/protocolbuffers/python:v36.2
+    out: gen
+    include_imports: true
+  - remote: buf.build/protocolbuffers/pyi:v36.2
+    out: gen
+    include_imports: true
+  - remote: buf.build/grpc/python:v1.85.4
+    out: gen
+    include_imports: true
